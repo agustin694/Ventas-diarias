@@ -400,82 +400,48 @@ let products = [];
 // LOGIN
 // -------------------------
   async function login() {
-console.log("LOGIN SCRIPT CARGADO");
-  const status =
-    document.getElementById("loginStatus");
+  const status = document.getElementById("loginStatus");
 
-  const email =
-    document.getElementById("email").value.trim();
-
-  const password =
-    document.getElementById("password").value;
-
-  status.textContent =
-    "🔄 Conectando...";
-
-  if (!email || !password) {
-
-    status.textContent =
-      "❌ Completá email y contraseña.";
-
-    return;
-  }
+  status.textContent = "🔄 Iniciando sesión...";
 
   try {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
 
-    status.textContent =
-      "🔄 Verificando usuario...";
+    if (!email || !password) {
+      status.textContent = "❌ Ingresá email y contraseña.";
+      return;
+    }
 
-    const result =
+    const { data, error } =
       await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
+        email,
+        password
       });
 
-    console.log("Resultado login:", result);
-
-    if (result.error) {
-
-      status.textContent =
-        "❌ Error de Supabase: " +
-        result.error.message;
-
+    if (error) {
+      status.textContent = "❌ " + error.message;
       return;
     }
 
-    if (!result.data.user) {
-
-      status.textContent =
-        "❌ Supabase no devolvió ningún usuario.";
-
+    if (!data.user) {
+      status.textContent = "❌ No se encontró el usuario.";
       return;
     }
 
-    if (result.data.user.id !== ADMIN_ID) {
-
+    if (data.user.id !== ADMIN_ID) {
       await supabaseClient.auth.signOut();
-
       status.textContent =
         "❌ Esta cuenta no tiene permisos de administrador.";
-
       return;
     }
 
-    status.textContent =
-      "✅ Login correcto. Cargando panel...";
+    status.textContent = "✅ Ingreso correcto.";
 
     await showAdmin();
 
   } catch (error) {
-
-    console.error("Error de login:", error);
-
-    status.textContent =
-      "❌ Error: " + error.message;
-  }
-
-
-  showAdmin();
+    status.textContent = "❌ Error: " + error.message;
 
 }
 
