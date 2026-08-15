@@ -23,7 +23,7 @@
     header {
       background: #111827;
       color: white;
-      padding: 18px;
+      padding: 20px;
       text-align: center;
     }
 
@@ -34,16 +34,16 @@
 
     .container {
       width: 94%;
-      max-width: 900px;
+      max-width: 950px;
       margin: 20px auto;
     }
 
     .card {
       background: white;
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 3px 15px rgba(0,0,0,0.08);
     }
 
     h2 {
@@ -78,32 +78,25 @@
     }
 
     button:hover {
-      opacity: 0.9;
-    }
-
-    .danger {
-      background: #dc2626;
-    }
-
-    .success {
-      color: #15803d;
-      font-weight: bold;
-    }
-
-    .error {
-      color: #dc2626;
-      font-weight: bold;
-    }
-
-    .status {
-      margin-top: 5px;
-      margin-bottom: 10px;
-      min-height: 22px;
-      font-weight: bold;
+      opacity: .9;
     }
 
     .hidden {
       display: none !important;
+    }
+
+    .status {
+      min-height: 22px;
+      margin: 8px 0;
+      font-weight: bold;
+    }
+
+    .success {
+      color: #15803d;
+    }
+
+    .error {
+      color: #dc2626;
     }
 
     .stats {
@@ -113,30 +106,50 @@
     }
 
     .stat {
-      background: #f9fafb;
+      background: #f3f4f6;
       border-radius: 12px;
-      padding: 18px;
-      text-align: center;
-      border: 1px solid #e5e7eb;
+      padding: 15px;
+      font-weight: bold;
     }
 
     .stat-number {
       display: block;
-      font-size: 25px;
-      font-weight: bold;
-      margin-top: 5px;
+      margin-top: 7px;
+      font-size: 20px;
     }
 
-    .product {
+    .payment-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .payment-box {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .payment-box strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 18px;
+    }
+
+    .product,
+    .sale-row {
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       padding: 15px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
+      background: #fff;
     }
 
     .product img {
       width: 100%;
-      max-height: 240px;
+      max-height: 230px;
       object-fit: contain;
       border-radius: 10px;
       background: #f9fafb;
@@ -144,41 +157,122 @@
     }
 
     .product-name {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
+      margin-bottom: 6px;
     }
 
     .price {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: bold;
-      margin-top: 5px;
+      margin: 7px 0;
+    }
+
+    .profit {
+      color: #15803d;
+      font-weight: bold;
+      margin: 7px 0;
     }
 
     .stock {
-      margin-top: 5px;
-      color: #4b5563;
+      color: #374151;
+      margin: 7px 0;
     }
 
-    .sale-row {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 12px 0;
+    .sale-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
     }
 
-    .sale-row:last-child {
-      border-bottom: none;
+    .btn-green {
+      background: #15803d;
     }
 
-    .logout {
-      background: #6b7280;
+    .btn-blue {
+      background: #2563eb;
     }
 
-    @media (max-width: 600px) {
+    .btn-whatsapp {
+      background: #16a34a;
+    }
+
+    .btn-print {
+      background: #4b5563;
+    }
+
+    .btn-red {
+      background: #dc2626;
+    }
+
+    .receipt {
+      background: white;
+      max-width: 500px;
+      margin: auto;
+      padding: 25px;
+      border-radius: 14px;
+      border: 1px solid #ddd;
+    }
+
+    .receipt-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .receipt-line {
+      border-bottom: 1px dashed #999;
+      padding: 9px 0;
+    }
+
+    .receipt-total {
+      font-size: 23px;
+      font-weight: bold;
+      text-align: right;
+      margin-top: 15px;
+    }
+
+    .small {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 650px) {
+      .payment-grid {
+        grid-template-columns: 1fr;
+      }
+
       .stats {
         grid-template-columns: 1fr 1fr;
       }
+    }
 
-      .card {
-        padding: 15px;
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+
+      #receiptModal,
+      #receiptModal * {
+        visibility: visible;
+      }
+
+      #receiptModal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white;
+      }
+
+      .no-print {
+        display: none !important;
       }
     }
   </style>
@@ -225,9 +319,10 @@
   <!-- ADMIN -->
   <main id="adminSection" class="hidden">
 
+    <!-- RESUMEN -->
     <div class="card">
 
-      <h2>📈 Resumen de ventas</h2>
+      <h2>📈 Resumen general</h2>
 
       <div class="stats">
 
@@ -246,9 +341,9 @@
         </div>
 
         <div class="stat">
-          Productos
-          <span id="totalProducts" class="stat-number">
-            0
+          Ganancia
+          <span id="totalProfit" class="stat-number">
+            $0
           </span>
         </div>
 
@@ -260,6 +355,43 @@
         </div>
 
       </div>
+
+    </div>
+
+
+    <!-- DINERO DE HOY -->
+    <div class="card">
+
+      <h2>💰 Dinero de hoy por forma de pago</h2>
+
+      <div class="payment-grid">
+
+        <div class="payment-box">
+          💵 Efectivo
+          <strong id="cashToday">$0</strong>
+        </div>
+
+        <div class="payment-box">
+          📱 Mercado Pago
+          <strong id="mpToday">$0</strong>
+        </div>
+
+        <div class="payment-box">
+          💳 Tarjeta
+          <strong id="cardToday">$0</strong>
+        </div>
+
+      </div>
+
+      <p>
+        <strong>Total de hoy:</strong>
+        <span id="todayTotal">$0</span>
+      </p>
+
+      <p>
+        <strong>Ganancia de hoy:</strong>
+        <span id="todayProfit">$0</span>
+      </p>
 
     </div>
 
@@ -276,6 +408,7 @@
       >
 
       <select id="category">
+
         <option value="Otros">Otros</option>
         <option value="Electrodomésticos">Electrodomésticos</option>
         <option value="Cocina">Cocina</option>
@@ -284,7 +417,42 @@
         <option value="Audio">Audio</option>
         <option value="Televisores">Televisores</option>
         <option value="Línea blanca">Línea blanca</option>
+
       </select>
+
+
+      <label>
+        🆕 Estado del producto
+      </label>
+
+      <select id="productCondition">
+
+        <option value="Nuevo">
+          🆕 Nuevo
+        </option>
+
+        <option value="Usado">
+          ♻️ Usado
+        </option>
+
+        <option value="Reacondicionado">
+          🔧 Reacondicionado
+        </option>
+
+        <option value="Solo detalle">
+          📝 Solo detalle
+        </option>
+
+      </select>
+
+
+      <input
+        id="cost"
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Costo de compra"
+      >
 
       <input
         id="price"
@@ -293,6 +461,11 @@
         step="0.01"
         placeholder="Precio de venta"
       >
+
+      <div id="productProfitPreview" class="profit">
+        Ganancia por unidad: $0
+      </div>
+
 
       <input
         id="stock"
@@ -307,22 +480,31 @@
         placeholder="Descripción del producto"
       ></textarea>
 
+
       <label>
-        📷 Foto del producto
+        📷 Fotos del producto
       </label>
 
       <input
-        id="image"
+        id="images"
         type="file"
         accept="image/*"
+        multiple
       >
 
-      <button onclick="saveProduct()">
-        Guardar producto
+      <div class="small">
+        Podés seleccionar varias fotos. La primera será la foto principal.
+      </div>
+
+
+      <button
+        class="btn-green"
+        onclick="saveProduct()"
+      >
+        💾 Guardar producto
       </button>
 
-      <div id="productStatus" class="status">
-      </div>
+      <div id="productStatus" class="status"></div>
 
     </div>
 
@@ -330,7 +512,7 @@
     <!-- REGISTRAR VENTA -->
     <div class="card">
 
-      <h2>🛒 Registrar venta</h2>
+      <h2>🧾 Registrar venta</h2>
 
       <select id="saleProduct">
         <option value="">
@@ -347,12 +529,104 @@
         placeholder="Cantidad"
       >
 
-      <button onclick="registerSale()">
-        Registrar venta
+
+      <label>
+        👤 Nombre del cliente
+      </label>
+
+      <input
+        id="customerName"
+        type="text"
+        placeholder="Opcional"
+      >
+
+
+      <label>
+        📱 Teléfono del cliente
+      </label>
+
+      <input
+        id="customerPhone"
+        type="tel"
+        placeholder="Opcional"
+      >
+
+
+      <label>
+        💳 Forma de pago
+      </label>
+
+      <select id="paymentMethod">
+
+        <option value="Efectivo">
+          💵 Efectivo
+        </option>
+
+        <option value="Mercado Pago">
+          📱 Mercado Pago
+        </option>
+
+        <option value="Tarjeta">
+          💳 Tarjeta
+        </option>
+
+      </select>
+
+
+      <label>
+        🛡️ Garantía
+      </label>
+
+      <select id="warrantyDays">
+
+        <option value="0">
+          Sin garantía
+        </option>
+
+        <option value="7">
+          7 días
+        </option>
+
+        <option value="15">
+          15 días
+        </option>
+
+        <option value="30">
+          30 días
+        </option>
+
+        <option value="60">
+          60 días
+        </option>
+
+        <option value="90">
+          90 días
+        </option>
+
+        <option value="custom">
+          Personalizada
+        </option>
+
+      </select>
+
+
+      <input
+        id="customWarranty"
+        type="number"
+        min="1"
+        placeholder="Cantidad de días"
+        class="hidden"
+      >
+
+
+      <button
+        class="btn-blue"
+        onclick="registerSale()"
+      >
+        ✅ Registrar venta
       </button>
 
-      <div id="saleStatus" class="status">
-      </div>
+      <div id="saleStatus" class="status"></div>
 
     </div>
 
@@ -384,7 +658,7 @@
     <div class="card">
 
       <button
-        class="logout"
+        class="btn-red"
         onclick="logout()"
       >
         Cerrar sesión
@@ -397,11 +671,58 @@
 </div>
 
 
+<!-- COMPROBANTE -->
+<div
+  id="receiptModal"
+  class="hidden"
+  style="
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    overflow:auto;
+    padding:20px;
+    z-index:9999;
+  "
+>
+
+  <div class="receipt">
+
+    <div id="receiptContent"></div>
+
+    <div class="no-print">
+
+      <button
+        class="btn-whatsapp"
+        onclick="shareReceiptWhatsApp()"
+      >
+        📲 Compartir por WhatsApp
+      </button>
+
+      <button
+        class="btn-print"
+        onclick="printReceipt()"
+      >
+        🖨️ Imprimir / Guardar PDF
+      </button>
+
+      <button
+        onclick="closeReceipt()"
+      >
+        Cerrar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
 <script>
 
-  // -------------------------
+  // =====================================================
   // SUPABASE
-  // -------------------------
+  // =====================================================
 
   const SUPABASE_URL =
     "https://hovuypchngweflamnubr.supabase.co";
@@ -412,6 +733,9 @@
   const ADMIN_ID =
     "9d7fb4a8-28e6-4184-8a8b-ea40825b2573";
 
+  const WHATSAPP =
+    "5491176310928";
+
 
   const supabaseClient =
     window.supabase.createClient(
@@ -421,11 +745,13 @@
 
 
   let products = [];
+  let sales = [];
+  let currentReceipt = null;
 
 
-  // -------------------------
-  // FORMATO DINERO
-  // -------------------------
+  // =====================================================
+  // DINERO
+  // =====================================================
 
   function money(value) {
 
@@ -440,9 +766,25 @@
   }
 
 
-  // -------------------------
+  // =====================================================
+  // ESCAPAR HTML
+  // =====================================================
+
+  function escapeHtml(value) {
+
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  // =====================================================
   // LOGIN
-  // -------------------------
+  // =====================================================
 
   async function login() {
 
@@ -472,29 +814,26 @@
           "❌ Ingresá email y contraseña.";
 
         return;
+
       }
 
 
       const result =
         await supabaseClient.auth
           .signInWithPassword({
-            email: email,
-            password: password
+            email,
+            password
           });
 
 
       if (result.error) {
-
-        console.error(
-          "Login error:",
-          result.error
-        );
 
         status.textContent =
           "❌ " +
           result.error.message;
 
         return;
+
       }
 
 
@@ -507,6 +846,7 @@
           "❌ Supabase no devolvió el usuario.";
 
         return;
+
       }
 
 
@@ -520,6 +860,7 @@
           "❌ Esta cuenta no tiene permisos de administrador.";
 
         return;
+
       }
 
 
@@ -541,13 +882,9 @@
 
       await loadAll();
 
-
     } catch (error) {
 
-      console.error(
-        "Login unexpected error:",
-        error
-      );
+      console.error(error);
 
       status.textContent =
         "❌ Error: " +
@@ -558,9 +895,9 @@
   }
 
 
-  // -------------------------
+  // =====================================================
   // LOGOUT
-  // -------------------------
+  // =====================================================
 
   async function logout() {
 
@@ -584,9 +921,9 @@
   }
 
 
-  // -------------------------
+  // =====================================================
   // CARGAR TODO
-  // -------------------------
+  // =====================================================
 
   async function loadAll() {
 
@@ -596,20 +933,11 @@
   }
 
 
-  // -------------------------
-  // SUBIR FOTO
-  // -------------------------
+  // =====================================================
+  // SUBIR UNA FOTO
+  // =====================================================
 
   async function uploadImage(file) {
-
-    if (!file) {
-
-      throw new Error(
-        "No seleccionaste ninguna foto."
-      );
-
-    }
-
 
     const extension =
       file.name
@@ -617,11 +945,14 @@
         .pop()
         .toLowerCase();
 
-
     const fileName =
       ADMIN_ID +
       "-" +
       Date.now() +
+      "-" +
+      Math.random()
+        .toString(36)
+        .substring(2, 8) +
       "." +
       extension;
 
@@ -663,7 +994,7 @@
     ) {
 
       throw new Error(
-        "La foto se subió, pero no se pudo obtener su URL."
+        "La foto se subió pero no se pudo obtener su URL."
       );
 
     }
@@ -674,9 +1005,96 @@
   }
 
 
-  // -------------------------
+  // =====================================================
+  // PREVISUALIZAR GANANCIA
+  // =====================================================
+
+  function updateProfitPreview() {
+
+    const cost =
+      Number(
+        document
+          .getElementById("cost")
+          .value
+      ) || 0;
+
+    const price =
+      Number(
+        document
+          .getElementById("price")
+          .value
+      ) || 0;
+
+
+    const profit =
+      price - cost;
+
+
+    const element =
+      document.getElementById(
+        "productProfitPreview"
+      );
+
+
+    element.textContent =
+      "Ganancia por unidad: " +
+      money(profit);
+
+  }
+
+
+  document
+    .getElementById("cost")
+    .addEventListener(
+      "input",
+      updateProfitPreview
+    );
+
+
+  document
+    .getElementById("price")
+    .addEventListener(
+      "input",
+      updateProfitPreview
+    );
+
+
+  // =====================================================
+  // GARANTÍA PERSONALIZADA
+  // =====================================================
+
+  document
+    .getElementById("warrantyDays")
+    .addEventListener(
+      "change",
+      function() {
+
+        const custom =
+          document.getElementById(
+            "customWarranty"
+          );
+
+        if (this.value === "custom") {
+
+          custom.classList.remove(
+            "hidden"
+          );
+
+        } else {
+
+          custom.classList.add(
+            "hidden"
+          );
+
+        }
+
+      }
+    );
+
+
+  // =====================================================
   // GUARDAR PRODUCTO
-  // -------------------------
+  // =====================================================
 
   async function saveProduct() {
 
@@ -685,16 +1103,15 @@
         "productStatus"
       );
 
+
     try {
 
       status.textContent =
-        "🔄 Guardando producto...";
+        "🔄 Preparando producto...";
 
 
       const userResult =
-        await supabaseClient.auth
-          .getUser();
-
+        await supabaseClient.auth.getUser();
 
       const user =
         userResult.data.user;
@@ -718,12 +1135,22 @@
           .value
           .trim();
 
-
       const category =
         document
           .getElementById("category")
           .value;
 
+      const condition =
+        document
+          .getElementById("productCondition")
+          .value;
+
+      const cost =
+        Number(
+          document
+            .getElementById("cost")
+            .value
+        );
 
       const price =
         Number(
@@ -732,7 +1159,6 @@
             .value
         );
 
-
       const stock =
         Number(
           document
@@ -740,24 +1166,36 @@
             .value
         );
 
-
       const description =
         document
           .getElementById("description")
           .value
           .trim();
 
-
-      const file =
-        document
-          .getElementById("image")
-          .files[0];
+      const files =
+        Array.from(
+          document
+            .getElementById("images")
+            .files
+        );
 
 
       if (!name) {
 
         throw new Error(
           "Ingresá el nombre del producto."
+        );
+
+      }
+
+
+      if (
+        !Number.isFinite(cost) ||
+        cost < 0
+      ) {
+
+        throw new Error(
+          "Ingresá un costo válido."
         );
 
       }
@@ -776,6 +1214,23 @@
 
 
       if (
+        price < cost
+      ) {
+
+        if (
+          !confirm(
+            "El precio de venta es menor que el costo. ¿Querés continuar?"
+          )
+        ) {
+
+          return;
+
+        }
+
+      }
+
+
+      if (
         !Number.isInteger(stock) ||
         stock < 0
       ) {
@@ -787,21 +1242,22 @@
       }
 
 
-      if (!file) {
+      if (!files.length) {
 
         throw new Error(
-          "Seleccioná una foto desde tu galería."
+          "Seleccioná al menos una foto."
         );
 
       }
 
 
-      status.textContent =
-        "📷 Subiendo foto...";
+      if (files.length > 10) {
 
+        throw new Error(
+          "Podés cargar hasta 10 fotos por producto."
+        );
 
-      const imageUrl =
-        await uploadImage(file);
+      }
 
 
       status.textContent =
@@ -813,20 +1269,104 @@
           .from("products")
           .insert({
             user_id: user.id,
-            name: name,
-            category: category,
-            price: price,
-            stock: stock,
-            image_url: imageUrl,
-            description: description
-          });
+            name,
+            category,
+            cost,
+            price,
+            stock,
+            image_url: null,
+            description,
+            product_condition: condition
+          })
+          .select()
+          .single();
 
 
       if (insertResult.error) {
 
         throw new Error(
-          "Supabase: " +
+          "No se pudo guardar el producto: " +
           insertResult.error.message
+        );
+
+      }
+
+
+      const product =
+        insertResult.data;
+
+
+      let firstImageUrl = null;
+
+
+      for (
+        let i = 0;
+        i < files.length;
+        i++
+      ) {
+
+        status.textContent =
+          `📷 Subiendo foto ${i + 1} de ${files.length}...`;
+
+
+        const imageUrl =
+          await uploadImage(files[i]);
+
+
+        if (
+          i === 0
+        ) {
+
+          firstImageUrl =
+            imageUrl;
+
+        }
+
+
+        const imageResult =
+          await supabaseClient
+            .from("product_images")
+            .insert({
+              product_id: product.id,
+              user_id: user.id,
+              image_url: imageUrl,
+              sort_order: i
+            });
+
+
+        if (imageResult.error) {
+
+          throw new Error(
+            "La foto se subió pero no se pudo registrar: " +
+            imageResult.error.message
+          );
+
+        }
+
+      }
+
+
+      const updateMainImage =
+        await supabaseClient
+          .from("products")
+          .update({
+            image_url: firstImageUrl
+          })
+          .eq(
+            "id",
+            product.id
+          )
+          .eq(
+            "user_id",
+            user.id
+          );
+
+
+      if (updateMainImage.error) {
+
+        throw new Error(
+          "Producto guardado, pero no se pudo establecer la foto principal: " +
+          updateMainImage.error.message
         );
 
       }
@@ -840,29 +1380,28 @@
         .getElementById("name")
         .value = "";
 
+      document
+        .getElementById("cost")
+        .value = "";
 
       document
         .getElementById("price")
         .value = "";
 
-
       document
         .getElementById("stock")
         .value = "";
-
 
       document
         .getElementById("description")
         .value = "";
 
-
       document
-        .getElementById("image")
+        .getElementById("images")
         .value = "";
 
 
       await loadProducts();
-
 
     } catch (error) {
 
@@ -880,9 +1419,9 @@
   }
 
 
-  // -------------------------
+  // =====================================================
   // CARGAR PRODUCTOS
-  // -------------------------
+  // =====================================================
 
   async function loadProducts() {
 
@@ -902,7 +1441,10 @@
         await supabaseClient
           .from("products")
           .select("*")
-          .eq("user_id", ADMIN_ID)
+          .eq(
+            "user_id",
+            ADMIN_ID
+          )
           .order(
             "created_at",
             {
@@ -927,8 +1469,7 @@
 
       document
         .getElementById("totalProducts")
-        .textContent =
-        products.length;
+        ?.textContent;
 
 
       updateSaleProducts();
@@ -947,6 +1488,11 @@
       container.innerHTML =
         products
           .map(product => {
+
+            const profit =
+              Number(product.price || 0) -
+              Number(product.cost || 0);
+
 
             return `
               <div class="product">
@@ -968,11 +1514,31 @@
 
                 <div>
                   Categoría:
-                  ${escapeHtml(product.category || "Otros")}
+                  ${escapeHtml(
+                    product.category || "Otros"
+                  )}
+                </div>
+
+                <div>
+                  Estado:
+                  ${escapeHtml(
+                    product.product_condition || "Nuevo"
+                  )}
+                </div>
+
+                <div>
+                  Costo:
+                  ${money(product.cost)}
                 </div>
 
                 <div class="price">
+                  Venta:
                   ${money(product.price)}
+                </div>
+
+                <div class="profit">
+                  Ganancia:
+                  ${money(profit)}
                 </div>
 
                 <div class="stock">
@@ -984,7 +1550,9 @@
                   product.description
                     ? `
                       <p>
-                        ${escapeHtml(product.description)}
+                        ${escapeHtml(
+                          product.description
+                        )}
                       </p>
                     `
                     : ""
@@ -1018,9 +1586,9 @@
   }
 
 
-  // -------------------------
-  // SELECT PRODUCTOS PARA VENTA
-  // -------------------------
+  // =====================================================
+  // PRODUCTOS PARA VENTA
+  // =====================================================
 
   function updateSaleProducts() {
 
@@ -1050,8 +1618,10 @@
             "option"
           );
 
+
         option.value =
           product.id;
+
 
         option.textContent =
           product.name +
@@ -1059,6 +1629,7 @@
           money(product.price) +
           " — Stock: " +
           product.stock;
+
 
         select.appendChild(
           option
@@ -1069,9 +1640,9 @@
   }
 
 
-  // -------------------------
+  // =====================================================
   // REGISTRAR VENTA
-  // -------------------------
+  // =====================================================
 
   async function registerSale() {
 
@@ -1101,6 +1672,51 @@
         );
 
 
+      const customerName =
+        document
+          .getElementById("customerName")
+          .value
+          .trim();
+
+
+      const customerPhone =
+        document
+          .getElementById("customerPhone")
+          .value
+          .trim();
+
+
+      const paymentMethod =
+        document
+          .getElementById("paymentMethod")
+          .value;
+
+
+      let warrantyDays =
+        document
+          .getElementById("warrantyDays")
+          .value;
+
+
+      if (
+        warrantyDays === "custom"
+      ) {
+
+        warrantyDays =
+          Number(
+            document
+              .getElementById("customWarranty")
+              .value
+          );
+
+      } else {
+
+        warrantyDays =
+          Number(warrantyDays);
+
+      }
+
+
       if (!productId) {
 
         throw new Error(
@@ -1117,6 +1733,18 @@
 
         throw new Error(
           "Ingresá una cantidad válida."
+        );
+
+      }
+
+
+      if (
+        !Number.isInteger(warrantyDays) ||
+        warrantyDays < 0
+      ) {
+
+        throw new Error(
+          "Ingresá una garantía válida."
         );
 
       }
@@ -1152,8 +1780,7 @@
 
 
       const userResult =
-        await supabaseClient.auth
-          .getUser();
+        await supabaseClient.auth.getUser();
 
 
       const user =
@@ -1172,17 +1799,67 @@
       }
 
 
+      const unitPrice =
+        Number(product.price);
+
+      const unitCost =
+        Number(product.cost || 0);
+
+
+      let warrantyUntil = null;
+
+
+      if (
+        warrantyDays > 0
+      ) {
+
+        const date =
+          new Date();
+
+        date.setDate(
+          date.getDate() +
+          warrantyDays
+        );
+
+
+        warrantyUntil =
+          date
+            .toISOString()
+            .split("T")[0];
+
+      }
+
+
       const saleResult =
         await supabaseClient
           .from("sales")
           .insert({
             user_id: user.id,
             product_id: product.id,
-            quantity: quantity,
-            unit_price: Number(
-              product.price
-            )
-          });
+            quantity,
+            unit_price: unitPrice,
+            unit_cost: unitCost,
+            payment_method: paymentMethod,
+            customer_name:
+              customerName || null,
+            customer_phone:
+              customerPhone || null,
+            product_condition:
+              product.product_condition || "Nuevo",
+            warranty_days:
+              warrantyDays,
+            warranty_until:
+              warrantyUntil
+          })
+          .select(
+            `
+              *,
+              products (
+                name
+              )
+            `
+          )
+          .single();
 
 
       if (saleResult.error) {
@@ -1193,6 +1870,10 @@
         );
 
       }
+
+
+      const sale =
+        saleResult.data;
 
 
       const newStock =
@@ -1234,10 +1915,33 @@
         .getElementById("saleQuantity")
         .value = "1";
 
+      document
+        .getElementById("customerName")
+        .value = "";
+
+      document
+        .getElementById("customerPhone")
+        .value = "";
+
+      document
+        .getElementById("warrantyDays")
+        .value = "0";
+
+      document
+        .getElementById("customWarranty")
+        .value = "";
+
+      document
+        .getElementById("customWarranty")
+        .classList
+        .add("hidden");
+
 
       await loadProducts();
       await loadSales();
 
+
+      showReceipt(sale);
 
     } catch (error) {
 
@@ -1255,9 +1959,9 @@
   }
 
 
-  // -------------------------
+  // =====================================================
   // CARGAR VENTAS
-  // -------------------------
+  // =====================================================
 
   async function loadSales() {
 
@@ -1281,6 +1985,14 @@
               id,
               quantity,
               unit_price,
+              unit_cost,
+              payment_method,
+              customer_name,
+              customer_phone,
+              product_condition,
+              warranty_days,
+              warranty_until,
+              receipt_number,
               created_at,
               product_id,
               products (
@@ -1310,29 +2022,94 @@
       }
 
 
-      const sales =
+      sales =
         result.data || [];
 
 
       let totalRevenue = 0;
+      let totalProfit = 0;
       let totalUnits = 0;
+
+
+      let cashToday = 0;
+      let mpToday = 0;
+      let cardToday = 0;
+      let todayProfit = 0;
+
+
+      const today =
+        new Date()
+          .toISOString()
+          .slice(0, 10);
 
 
       sales.forEach(
         sale => {
 
-          totalRevenue +=
-            Number(
-              sale.unit_price
-            ) *
-            Number(
-              sale.quantity
-            );
+          const quantity =
+            Number(sale.quantity);
 
-          totalUnits +=
-            Number(
-              sale.quantity
-            );
+          const price =
+            Number(sale.unit_price);
+
+          const cost =
+            Number(sale.unit_cost || 0);
+
+
+          const total =
+            price * quantity;
+
+          const profit =
+            (price - cost) *
+            quantity;
+
+
+          totalRevenue += total;
+          totalProfit += profit;
+          totalUnits += quantity;
+
+
+          const saleDate =
+            new Date(sale.created_at)
+              .toISOString()
+              .slice(0, 10);
+
+
+          if (
+            saleDate === today
+          ) {
+
+            todayProfit += profit;
+
+
+            if (
+              sale.payment_method ===
+              "Efectivo"
+            ) {
+
+              cashToday += total;
+
+            }
+
+            if (
+              sale.payment_method ===
+              "Mercado Pago"
+            ) {
+
+              mpToday += total;
+
+            }
+
+            if (
+              sale.payment_method ===
+              "Tarjeta"
+            ) {
+
+              cardToday += total;
+
+            }
+
+          }
 
         }
       );
@@ -1351,9 +2128,49 @@
 
 
       document
+        .getElementById("totalProfit")
+        .textContent =
+        money(totalProfit);
+
+
+      document
         .getElementById("totalUnits")
         .textContent =
         totalUnits;
+
+
+      document
+        .getElementById("cashToday")
+        .textContent =
+        money(cashToday);
+
+
+      document
+        .getElementById("mpToday")
+        .textContent =
+        money(mpToday);
+
+
+      document
+        .getElementById("cardToday")
+        .textContent =
+        money(cardToday);
+
+
+      document
+        .getElementById("todayTotal")
+        .textContent =
+        money(
+          cashToday +
+          mpToday +
+          cardToday
+        );
+
+
+      document
+        .getElementById("todayProfit")
+        .textContent =
+        money(todayProfit);
 
 
       if (!sales.length) {
@@ -1386,14 +2203,38 @@
               );
 
 
+            const profit =
+              (
+                Number(sale.unit_price) -
+                Number(sale.unit_cost || 0)
+              ) *
+              Number(sale.quantity);
+
+
             const date =
               new Date(
                 sale.created_at
               );
 
 
+            const receipt =
+              String(
+                sale.receipt_number || ""
+              )
+              .padStart(
+                6,
+                "0"
+              );
+
+
             return `
               <div class="sale-row">
+
+                <strong>
+                  🧾 Comprobante #${receipt}
+                </strong>
+
+                <br><br>
 
                 <strong>
                   ${escapeHtml(productName)}
@@ -1418,9 +2259,48 @@
 
                 <br>
 
+                Ganancia:
+                <strong class="profit">
+                  ${money(profit)}
+                </strong>
+
+                <br>
+
+                Forma de pago:
+                ${escapeHtml(
+                  sale.payment_method || "Efectivo"
+                )}
+
+                <br>
+
+                Estado:
+                ${escapeHtml(
+                  sale.product_condition || "Nuevo"
+                )}
+
+                <br>
+
                 <small>
                   ${date.toLocaleString("es-AR")}
                 </small>
+
+                <div class="sale-actions">
+
+                  <button
+                    class="btn-blue"
+                    onclick="openSaleReceipt('${sale.id}')"
+                  >
+                    🧾 Ver comprobante
+                  </button>
+
+                  <button
+                    class="btn-whatsapp"
+                    onclick="shareExistingSale('${sale.id}')"
+                  >
+                    📲 WhatsApp
+                  </button>
+
+                </div>
 
               </div>
             `;
@@ -1450,40 +2330,481 @@
   }
 
 
-  // -------------------------
-  // ESCAPAR HTML
-  // -------------------------
+  // =====================================================
+  // CREAR COMPROBANTE
+  // =====================================================
 
-  function escapeHtml(value) {
+  function showReceipt(sale) {
 
-    return String(value ?? "")
-      .replace(
-        /&/g,
-        "&amp;"
-      )
-      .replace(
-        /</g,
-        "&lt;"
-      )
-      .replace(
-        />/g,
-        "&gt;"
-      )
-      .replace(
-        /"/g,
-        "&quot;"
-      )
-      .replace(
-        /'/g,
-        "&#039;"
+    currentReceipt =
+      sale;
+
+
+    const productName =
+      sale.products &&
+      sale.products.name
+        ? sale.products.name
+        : "Producto";
+
+
+    const quantity =
+      Number(sale.quantity);
+
+
+    const total =
+      Number(sale.unit_price) *
+      quantity;
+
+
+    const date =
+      new Date(
+        sale.created_at
       );
+
+
+    const receiptNumber =
+      String(
+        sale.receipt_number || ""
+      )
+      .padStart(
+        6,
+        "0"
+      );
+
+
+    let warrantyText =
+      "Sin garantía";
+
+
+    if (
+      Number(sale.warranty_days) > 0
+    ) {
+
+      warrantyText =
+        Number(sale.warranty_days) +
+        " días";
+
+
+    }
+
+
+    let warrantyUntil =
+      "";
+
+
+    if (
+      sale.warranty_until
+    ) {
+
+      const parts =
+        sale.warranty_until
+          .split("-");
+
+      warrantyUntil =
+        parts[2] +
+        "/" +
+        parts[1] +
+        "/" +
+        parts[0];
+
+    }
+
+
+    document
+      .getElementById("receiptContent")
+      .innerHTML = `
+
+        <div class="receipt-header">
+
+          <h1>
+            🧾 OFERTAS DIARIAS
+          </h1>
+
+          <h2>
+            COMPROBANTE DE VENTA
+          </h2>
+
+          <strong>
+            N.º ${receiptNumber}
+          </strong>
+
+        </div>
+
+        <div class="receipt-line">
+
+          <strong>Fecha:</strong>
+          ${date.toLocaleDateString("es-AR")}
+
+        </div>
+
+        <div class="receipt-line">
+
+          <strong>Hora:</strong>
+          ${date.toLocaleTimeString("es-AR")}
+
+        </div>
+
+        ${
+          sale.customer_name
+            ? `
+              <div class="receipt-line">
+                <strong>Cliente:</strong>
+                ${escapeHtml(
+                  sale.customer_name
+                )}
+              </div>
+            `
+            : ""
+        }
+
+        ${
+          sale.customer_phone
+            ? `
+              <div class="receipt-line">
+                <strong>Teléfono:</strong>
+                ${escapeHtml(
+                  sale.customer_phone
+                )}
+              </div>
+            `
+            : ""
+        }
+
+        <div class="receipt-line">
+
+          <strong>Producto:</strong>
+          ${escapeHtml(productName)}
+
+        </div>
+
+        <div class="receipt-line">
+
+          <strong>Estado:</strong>
+          ${escapeHtml(
+            sale.product_condition ||
+            "Nuevo"
+          )}
+
+        </div>
+
+        <div class="receipt-line">
+
+          <strong>Cantidad:</strong>
+          ${quantity}
+
+        </div>
+
+        <div class="receipt-line">
+
+          <strong>Precio:</strong>
+          ${money(sale.unit_price)}
+
+        </div>
+
+        <div class="receipt-line">
+
+          <strong>Forma de pago:</strong>
+          ${escapeHtml(
+            sale.payment_method ||
+            "Efectivo"
+          )}
+
+        </div>
+
+        <div class="receipt-line">
+
+          <strong>Garantía:</strong>
+          ${warrantyText}
+
+        </div>
+
+        ${
+          warrantyUntil
+            ? `
+              <div class="receipt-line">
+
+                <strong>
+                  Garantía hasta:
+                </strong>
+
+                ${warrantyUntil}
+
+              </div>
+            `
+            : ""
+        }
+
+        <div class="receipt-total">
+
+          TOTAL:
+          ${money(total)}
+
+        </div>
+
+        <hr>
+
+        <p style="text-align:center;">
+          Gracias por tu compra ❤️
+        </p>
+
+      `;
+
+
+    document
+      .getElementById("receiptModal")
+      .classList
+      .remove("hidden");
 
   }
 
 
-  // -------------------------
+  // =====================================================
+  // ABRIR COMPROBANTE EXISTENTE
+  // =====================================================
+
+  function openSaleReceipt(id) {
+
+    const sale =
+      sales.find(
+        item =>
+          item.id === id
+      );
+
+
+    if (!sale) {
+
+      alert(
+        "No se encontró la venta."
+      );
+
+      return;
+
+    }
+
+
+    showReceipt(sale);
+
+  }
+
+
+  // =====================================================
+  // CERRAR COMPROBANTE
+  // =====================================================
+
+  function closeReceipt() {
+
+    document
+      .getElementById("receiptModal")
+      .classList
+      .add("hidden");
+
+  }
+
+
+  // =====================================================
+  // IMPRIMIR
+  // =====================================================
+
+  function printReceipt() {
+
+    window.print();
+
+  }
+
+
+  // =====================================================
+  // WHATSAPP
+  // =====================================================
+
+  function buildWhatsAppMessage(sale) {
+
+    const productName =
+      sale.products &&
+      sale.products.name
+        ? sale.products.name
+        : "Producto";
+
+
+    const total =
+      Number(sale.unit_price) *
+      Number(sale.quantity);
+
+
+    const date =
+      new Date(
+        sale.created_at
+      );
+
+
+    const receiptNumber =
+      String(
+        sale.receipt_number || ""
+      )
+      .padStart(
+        6,
+        "0"
+      );
+
+
+    let warranty =
+      "Sin garantía";
+
+
+    if (
+      Number(sale.warranty_days) > 0
+    ) {
+
+      warranty =
+        sale.warranty_days +
+        " días";
+
+    }
+
+
+    let message =
+      "🧾 COMPROBANTE DE VENTA\n\n" +
+
+      "Ofertas Diarias\n" +
+
+      "Comprobante N.º " +
+      receiptNumber +
+      "\n\n" +
+
+      "📅 Fecha: " +
+      date.toLocaleDateString("es-AR") +
+      "\n" +
+
+      "🕐 Hora: " +
+      date.toLocaleTimeString("es-AR") +
+      "\n\n" +
+
+      "📦 Producto: " +
+      productName +
+      "\n" +
+
+      "🔢 Cantidad: " +
+      sale.quantity +
+      "\n" +
+
+      "🏷️ Estado: " +
+      (sale.product_condition || "Nuevo") +
+      "\n" +
+
+      "💰 Precio: " +
+      money(sale.unit_price) +
+      "\n" +
+
+      "💵 Total: " +
+      money(total) +
+      "\n" +
+
+      "💳 Forma de pago: " +
+      (sale.payment_method || "Efectivo") +
+      "\n" +
+
+      "🛡️ Garantía: " +
+      warranty;
+
+
+    if (
+      sale.warranty_until
+    ) {
+
+      const parts =
+        sale.warranty_until
+          .split("-");
+
+
+      message +=
+        "\n📅 Garantía hasta: " +
+        parts[2] +
+        "/" +
+        parts[1] +
+        "/" +
+        parts[0];
+
+    }
+
+
+    message +=
+      "\n\nGracias por tu compra ❤️";
+
+
+    return message;
+
+  }
+
+
+  function shareReceiptWhatsApp() {
+
+    if (!currentReceipt) {
+
+      return;
+
+    }
+
+
+    const message =
+      buildWhatsAppMessage(
+        currentReceipt
+      );
+
+
+    const url =
+      "https://wa.me/?text=" +
+      encodeURIComponent(message);
+
+
+    window.open(
+      url,
+      "_blank"
+    );
+
+  }
+
+
+  function shareExistingSale(id) {
+
+    const sale =
+      sales.find(
+        item =>
+          item.id === id
+      );
+
+
+    if (!sale) {
+
+      alert(
+        "No se encontró la venta."
+      );
+
+      return;
+
+    }
+
+
+    const message =
+      buildWhatsAppMessage(
+        sale
+      );
+
+
+    const url =
+      "https://wa.me/?text=" +
+      encodeURIComponent(message);
+
+
+    window.open(
+      url,
+      "_blank"
+    );
+
+  }
+
+
+  // =====================================================
   // COMPROBAR SESIÓN
-  // -------------------------
+  // =====================================================
 
   async function checkSession() {
 
@@ -1531,13 +2852,13 @@
   }
 
 
-  // -------------------------
+  // =====================================================
   // INICIO
-  // -------------------------
+  // =====================================================
 
   checkSession();
 
 </script>
 
 </body>
-</html>
+  </html>
