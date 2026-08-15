@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Ventas Diarias</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      background: #111;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    button:hover {
+      opacity: .9;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+    }
+
+    .stat {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      margin-top: 8px;
+    }
+
+    #status {
+      padding: 10px;
+      border-radius: 8px;
+      background: #eee;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>📊 Ventas Diarias</h1>
+
+  <div class="card">
+
+    <h2>➕ Agregar producto</h2>
+
+    <label>Nombre</label>
+    <input id="name" type="text" placeholder="Ej: Licuadora">
+
+    <label>Categoría</label>
+    <select id="category">
+      <option>Electrodomésticos</option>
+      <option>Ropa</option>
+      <option>Tecnología</option>
+      <option>Hogar</option>
+      <option>Otros</option>
+    </select>
+
+    <label>Costo</label>
+    <input id="cost" type="number" min="0" placeholder="Costo del producto">
+
+    <label>Precio de venta</label>
+    <input id="price" type="number" min="0" placeholder="Precio de venta">
+
+    <label>Stock</label>
+    <input id="stock" type="number" min="0" placeholder="Cantidad">
+
+    <label>Descripción</label>
+    <textarea id="description" placeholder="Descripción del producto"></textarea>
+
+    <label>📷 Foto del producto</label>
+    <input id="image" type="file" accept="image/*">
+
+    <button onclick="saveProduct()">
+      💾 Guardar producto
+    </button>
+
+    <div id="status">
+      Esperando...
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>📊 Resumen</h2>
+
+    <div class="stats">
+
+      <div class="stat">
+        Ventas
+        <strong id="totalSales">$0</strong>
+      </div>
+
+      <div class="stat">
+        Ganancia
+        <strong id="totalProfit">$0</strong>
+      </div>
+
+      <div class="stat">
+        Productos vendidos
+        <strong id="productsSold">0</strong>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+const SUPABASE_URL =
+  "https://hovuypchngweflamnubr.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_DomJB-3gsWOZ2HBkYlSfAQ_59cvT9uM";
+
+const USER_ID =
+  "0174480b-537e-48dd-ab9c-643e367043af";
+
+async function saveProduct() {
+
+  const status =
+    document.getElementById("status");
+
+  status.textContent =
+    "Guardando producto...";
+
+  try {
+
+    const name =
+      document.getElementById("name").value.trim();
+
+    const category =
+      document.getElementById("category").value;
+
+    const cost =
+      Number(document.getElementById("cost").value);
+
+    const price =
+      Number(document.getElementById("price").value);
+
+    const stock =
+      Number(document.getElementById("stock").value);
+
+    const description =
+      document.getElementById("description").value.trim();
+
+    const imageFile =
+      document.getElementById("image").files[0];
+
+    if (!name) {
+      throw new Error("Ingresá el nombre del producto.");
+    }
+
+    if (!price) {
+      throw new Error("Ingresá el precio de venta.");
+    }
+
+    if (!imageFile) {
+      throw new Error("Seleccioná una foto.");
+    }
+
+    status.textContent =
+      "Preparando producto...";
+
+    // Próximo paso:
+    // subir la foto a Supabase Storage
+    // y guardar el producto.
+
+    status.textContent =
+      "El formulario funciona. Falta conectar la subida de fotos.";
+
+  } catch (error) {
+
+    status.textContent =
+      "Error: " + error.message;
+
+  }
+
+}
+
+</script>
+
+</body>
+</html>
