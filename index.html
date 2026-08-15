@@ -408,7 +408,7 @@
       >
 
       <select id="category">
-
+        <option value="Deportes">🏅 Deportes</option>
         <option value="Otros">Otros</option>
         <option value="Electrodomésticos">Electrodomésticos</option>
         <option value="Cocina">Cocina</option>
@@ -425,7 +425,17 @@
         🆕 Estado del producto
       </label>
 
-      <select id="productCondition">
+      <select id="productCondition"> 
+        <label class="liquidation-option">
+
+  <input
+    id="isLiquidation"
+    type="checkbox"
+  >
+
+  🔥 Producto en liquidación
+
+      </label>
 
         <option value="Nuevo">
           🆕 Nuevo
@@ -1171,7 +1181,12 @@
           .getElementById("description")
           .value
           .trim();
-
+     
+      const isLiquidation =
+  document
+    .getElementById("isLiquidation")
+    .checked;
+      
       const files =
         Array.from(
           document
@@ -1277,6 +1292,7 @@
             image_url: null,
             description,
             product_condition: condition
+            is_liquidation: isLiquidation
           })
           .select()
           .single();
