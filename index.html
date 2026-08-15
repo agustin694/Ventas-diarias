@@ -399,8 +399,10 @@ let products = [];
 // -------------------------
 // LOGIN
 // -------------------------
+  async function login() {
 
-async function login() {
+  const status =
+    document.getElementById("loginStatus");
 
   const email =
     document.getElementById("email").value.trim();
@@ -408,43 +410,70 @@ async function login() {
   const password =
     document.getElementById("password").value;
 
-  const status =
-    document.getElementById("loginStatus");
+  status.textContent =
+    "🔄 Conectando...";
 
   if (!email || !password) {
 
     status.textContent =
-      "Ingresá email y contraseña.";
+      "❌ Completá email y contraseña.";
 
     return;
   }
 
-  status.textContent =
-    "Ingresando...";
-
-  const { data, error } =
-    await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
-
-  if (error) {
+  try {
 
     status.textContent =
-      "Error: " + error.message;
+      "🔄 Verificando usuario...";
 
-    return;
-  }
+    const result =
+      await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
 
-  if (!data.user || data.user.id !== ADMIN_ID) {
+    console.log("Resultado login:", result);
 
-    await supabaseClient.auth.signOut();
+    if (result.error) {
+
+      status.textContent =
+        "❌ Error de Supabase: " +
+        result.error.message;
+
+      return;
+    }
+
+    if (!result.data.user) {
+
+      status.textContent =
+        "❌ Supabase no devolvió ningún usuario.";
+
+      return;
+    }
+
+    if (result.data.user.id !== ADMIN_ID) {
+
+      await supabaseClient.auth.signOut();
+
+      status.textContent =
+        "❌ Esta cuenta no tiene permisos de administrador.";
+
+      return;
+    }
 
     status.textContent =
-      "Esta cuenta no tiene permisos de administrador.";
+      "✅ Login correcto. Cargando panel...";
 
-    return;
+    await showAdmin();
+
+  } catch (error) {
+
+    console.error("Error de login:", error);
+
+    status.textContent =
+      "❌ Error: " + error.message;
   }
+
 
   showAdmin();
 
