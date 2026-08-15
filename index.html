@@ -15,28 +15,40 @@
 
     body {
       margin: 0;
-      padding: 20px;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      color: #222;
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 18px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 25px;
     }
 
     .container {
+      width: 94%;
       max-width: 900px;
-      margin: auto;
+      margin: 20px auto;
     }
 
     .card {
       background: white;
+      border-radius: 14px;
       padding: 20px;
       margin-bottom: 20px;
-      border-radius: 14px;
-      box-shadow: 0 3px 12px rgba(0,0,0,.08);
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
     }
 
-    h1,
     h2 {
       margin-top: 0;
+      font-size: 21px;
     }
 
     input,
@@ -44,93 +56,129 @@
     textarea,
     button {
       width: 100%;
-      padding: 12px;
+      padding: 13px;
       margin-top: 8px;
-      margin-bottom: 14px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      margin-bottom: 12px;
+      border-radius: 9px;
+      border: 1px solid #d1d5db;
       font-size: 16px;
     }
 
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
     button {
-      border: 0;
-      background: #111;
+      background: #111827;
       color: white;
-      cursor: pointer;
+      border: none;
       font-weight: bold;
+      cursor: pointer;
     }
 
     button:hover {
-      opacity: .9;
-    }
-
-    .logout {
-      background: #777;
+      opacity: 0.9;
     }
 
     .danger {
-      background: #c62828;
+      background: #dc2626;
     }
 
-    .hidden {
-      display: none;
+    .success {
+      color: #15803d;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #dc2626;
+      font-weight: bold;
     }
 
     .status {
-      padding: 12px;
-      background: #eee;
-      border-radius: 8px;
-      margin-top: 10px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      min-height: 22px;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none !important;
     }
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
 
     .stat {
-      background: white;
-      padding: 18px;
+      background: #f9fafb;
       border-radius: 12px;
+      padding: 18px;
       text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      border: 1px solid #e5e7eb;
     }
 
-    .stat strong {
+    .stat-number {
       display: block;
-      font-size: 24px;
-      margin-top: 8px;
+      font-size: 25px;
+      font-weight: bold;
+      margin-top: 5px;
     }
 
     .product {
-      display: grid;
-      grid-template-columns: 100px 1fr;
-      gap: 15px;
-      padding: 15px 0;
-      border-bottom: 1px solid #ddd;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 14px;
     }
 
     .product img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
+      width: 100%;
+      max-height: 240px;
+      object-fit: contain;
       border-radius: 10px;
-      background: #eee;
+      background: #f9fafb;
+      margin-bottom: 10px;
     }
 
-    .product-info h3 {
-      margin: 0 0 8px;
+    .product-name {
+      font-size: 20px;
+      font-weight: bold;
     }
 
-    .small {
-      color: #666;
-      font-size: 14px;
+    .price {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 5px;
     }
 
-    @media (max-width: 500px) {
-      body {
-        padding: 12px;
+    .stock {
+      margin-top: 5px;
+      color: #4b5563;
+    }
+
+    .sale-row {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 12px 0;
+    }
+
+    .sale-row:last-child {
+      border-bottom: none;
+    }
+
+    .logout {
+      background: #6b7280;
+    }
+
+    @media (max-width: 600px) {
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .card {
+        padding: 15px;
       }
     }
   </style>
@@ -138,140 +186,105 @@
 
 <body>
 
+<header>
+  <h1>📊 Ventas Diarias</h1>
+</header>
+
 <div class="container">
 
   <!-- LOGIN -->
+  <section id="loginSection" class="card">
 
-  <div id="loginScreen" class="card">
-
-    <h1>🔐 Ventas Diarias</h1>
-
-    <p>Ingresá para administrar tus productos.</p>
-
-    <label>Email</label>
+    <h2>🔐 Iniciar sesión</h2>
 
     <input
       id="email"
       type="email"
-      placeholder="Tu email"
+      placeholder="Email"
       autocomplete="email"
     >
-
-    <label>Contraseña</label>
 
     <input
       id="password"
       type="password"
-      placeholder="Tu contraseña"
+      placeholder="Contraseña"
       autocomplete="current-password"
     >
 
     <button onclick="login()">
+      Ingresar
     </button>
 
     <div id="loginStatus" class="status">
-      prueba 123
+      Esperando...
     </div>
 
-  </div>
+  </section>
 
 
-  <!-- PANEL -->
-
-  <div id="adminPanel" class="hidden">
+  <!-- ADMIN -->
+  <main id="adminSection" class="hidden">
 
     <div class="card">
 
-      <h1>📊 Ventas Diarias</h1>
+      <h2>📈 Resumen de ventas</h2>
 
-      <p>
-        Panel de administración
-      </p>
+      <div class="stats">
 
-      <button
-        class="logout"
-        onclick="logout()">
-        Cerrar sesión
-      </button>
+        <div class="stat">
+          Ventas
+          <span id="totalSales" class="stat-number">
+            0
+          </span>
+        </div>
 
-    </div>
+        <div class="stat">
+          Dinero vendido
+          <span id="totalRevenue" class="stat-number">
+            $0
+          </span>
+        </div>
 
+        <div class="stat">
+          Productos
+          <span id="totalProducts" class="stat-number">
+            0
+          </span>
+        </div>
 
-    <!-- ESTADISTICAS -->
+        <div class="stat">
+          Unidades
+          <span id="totalUnits" class="stat-number">
+            0
+          </span>
+        </div>
 
-    <div class="stats">
-
-      <div class="stat">
-        💰 Ventas
-        <strong id="totalSales">$0</strong>
-      </div>
-
-      <div class="stat">
-        📈 Ganancia
-        <strong id="totalProfit">$0</strong>
-      </div>
-
-      <div class="stat">
-        📦 Productos
-        <strong id="productsSold">0</strong>
       </div>
 
     </div>
 
 
     <!-- AGREGAR PRODUCTO -->
-
     <div class="card">
 
       <h2>➕ Agregar producto</h2>
 
-      <label>Nombre</label>
-
       <input
         id="name"
         type="text"
-        placeholder="Ej: Licuadora"
+        placeholder="Nombre del producto"
       >
-
-      <label>Categoría</label>
 
       <select id="category">
-
-        <option value="Electrodomésticos">
-          Electrodomésticos
-        </option>
-
-        <option value="Ropa">
-          Ropa
-        </option>
-
-        <option value="Tecnología">
-          Tecnología
-        </option>
-
-        <option value="Hogar">
-          Hogar
-        </option>
-
-        <option value="Otros">
-          Otros
-        </option>
-
+        <option value="Otros">Otros</option>
+        <option value="Electrodomésticos">Electrodomésticos</option>
+        <option value="Cocina">Cocina</option>
+        <option value="Hogar">Hogar</option>
+        <option value="Tecnología">Tecnología</option>
+        <option value="Audio">Audio</option>
+        <option value="Televisores">Televisores</option>
+        <option value="Línea blanca">Línea blanca</option>
       </select>
-
-
-      <label>Costo</label>
-
-      <input
-        id="cost"
-        type="number"
-        min="0"
-        step="0.01"
-        placeholder="Costo"
-      >
-
-
-      <label>Precio de venta</label>
 
       <input
         id="price"
@@ -281,26 +294,18 @@
         placeholder="Precio de venta"
       >
 
-
-      <label>Stock</label>
-
       <input
         id="stock"
         type="number"
         min="0"
         step="1"
-        placeholder="Cantidad"
+        placeholder="Cantidad en stock"
       >
-
-
-      <label>Descripción</label>
 
       <textarea
         id="description"
-        rows="4"
         placeholder="Descripción del producto"
       ></textarea>
-
 
       <label>
         📷 Foto del producto
@@ -312,37 +317,20 @@
         accept="image/*"
       >
 
-
       <button onclick="saveProduct()">
-        💾 Guardar producto
+        Guardar producto
       </button>
 
-
       <div id="productStatus" class="status">
-        Esperando...
-      </div>
-
-    </div>
-
-
-    <!-- PRODUCTOS -->
-
-    <div class="card">
-
-      <h2>📦 Mis productos</h2>
-
-      <div id="productsList">
-        Cargando productos...
       </div>
 
     </div>
 
 
     <!-- REGISTRAR VENTA -->
-
     <div class="card">
 
-      <h2>🧾 Registrar venta</h2>
+      <h2>🛒 Registrar venta</h2>
 
       <select id="saleProduct">
         <option value="">
@@ -354,347 +342,1202 @@
         id="saleQuantity"
         type="number"
         min="1"
+        step="1"
         value="1"
         placeholder="Cantidad"
       >
 
       <button onclick="registerSale()">
-        💰 Registrar venta
+        Registrar venta
       </button>
 
       <div id="saleStatus" class="status">
-        Esperando...
       </div>
 
     </div>
 
-  </div>
+
+    <!-- PRODUCTOS -->
+    <div class="card">
+
+      <h2>📦 Mis productos</h2>
+
+      <div id="productsList">
+        Cargando productos...
+      </div>
+
+    </div>
+
+
+    <!-- VENTAS -->
+    <div class="card">
+
+      <h2>🧾 Últimas ventas</h2>
+
+      <div id="salesList">
+        Cargando ventas...
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <button
+        class="logout"
+        onclick="logout()"
+      >
+        Cerrar sesión
+      </button>
+
+    </div>
+
+  </main>
 
 </div>
 
 
 <script>
 
-const SUPABASE_URL =
-  "https://hovuypchngweflamnubr.supabase.co";
+  // -------------------------
+  // SUPABASE
+  // -------------------------
 
-const SUPABASE_KEY =
-  "sb_publishable_DomJB-3gsWOZ2HBkYlSfAQ_59cvT9uM";
+  const SUPABASE_URL =
+    "https://hovuypchngweflamnubr.supabase.co";
 
-const ADMIN_ID =
-  "9d7fb4a8-28e6-4184-8a8b-ea40825b2573";
+  const SUPABASE_KEY =
+    "sb_publishable_DomJB-3gsWOZ2HBkYlSfAQ_59cvT9uM";
 
-
-const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
+  const ADMIN_ID =
+    "9d7fb4a8-28e6-4184-8a8b-ea40825b2573";
 
 
-let products = [];
+  const supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
 
 
-// -------------------------
-// LOGIN
-// -------------------------
+  let products = [];
+
+
+  // -------------------------
+  // FORMATO DINERO
+  // -------------------------
+
+  function money(value) {
+
+    return new Intl.NumberFormat(
+      "es-AR",
+      {
+        style: "currency",
+        currency: "ARS"
+      }
+    ).format(Number(value) || 0);
+
+  }
+
+
+  // -------------------------
+  // LOGIN
+  // -------------------------
+
   async function login() {
-  const status = document.getElementById("loginStatus");
 
-  status.textContent = "🔄 Iniciando sesión...";
+    const status =
+      document.getElementById("loginStatus");
 
-  try {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
+    status.textContent =
+      "🔄 Iniciando sesión...";
 
-    if (!email || !password) {
-      status.textContent = "❌ Ingresá email y contraseña.";
-      return;
+    try {
+
+      const email =
+        document
+          .getElementById("email")
+          .value
+          .trim();
+
+      const password =
+        document
+          .getElementById("password")
+          .value;
+
+
+      if (!email || !password) {
+
+        status.textContent =
+          "❌ Ingresá email y contraseña.";
+
+        return;
+      }
+
+
+      const result =
+        await supabaseClient.auth
+          .signInWithPassword({
+            email: email,
+            password: password
+          });
+
+
+      if (result.error) {
+
+        console.error(
+          "Login error:",
+          result.error
+        );
+
+        status.textContent =
+          "❌ " +
+          result.error.message;
+
+        return;
+      }
+
+
+      if (
+        !result.data ||
+        !result.data.user
+      ) {
+
+        status.textContent =
+          "❌ Supabase no devolvió el usuario.";
+
+        return;
+      }
+
+
+      if (
+        result.data.user.id !== ADMIN_ID
+      ) {
+
+        await supabaseClient.auth.signOut();
+
+        status.textContent =
+          "❌ Esta cuenta no tiene permisos de administrador.";
+
+        return;
+      }
+
+
+      status.textContent =
+        "✅ Ingreso correcto.";
+
+
+      document
+        .getElementById("loginSection")
+        .classList
+        .add("hidden");
+
+
+      document
+        .getElementById("adminSection")
+        .classList
+        .remove("hidden");
+
+
+      await loadAll();
+
+
+    } catch (error) {
+
+      console.error(
+        "Login unexpected error:",
+        error
+      );
+
+      status.textContent =
+        "❌ Error: " +
+        error.message;
+
     }
 
-    const { data, error } =
-      await supabaseClient.auth.signInWithPassword({
-        email,
-        password
+  }
+
+
+  // -------------------------
+  // LOGOUT
+  // -------------------------
+
+  async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    document
+      .getElementById("adminSection")
+      .classList
+      .add("hidden");
+
+    document
+      .getElementById("loginSection")
+      .classList
+      .remove("hidden");
+
+    document
+      .getElementById("loginStatus")
+      .textContent =
+      "Sesión cerrada.";
+
+  }
+
+
+  // -------------------------
+  // CARGAR TODO
+  // -------------------------
+
+  async function loadAll() {
+
+    await loadProducts();
+    await loadSales();
+
+  }
+
+
+  // -------------------------
+  // SUBIR FOTO
+  // -------------------------
+
+  async function uploadImage(file) {
+
+    if (!file) {
+
+      throw new Error(
+        "No seleccionaste ninguna foto."
+      );
+
+    }
+
+
+    const extension =
+      file.name
+        .split(".")
+        .pop()
+        .toLowerCase();
+
+
+    const fileName =
+      ADMIN_ID +
+      "-" +
+      Date.now() +
+      "." +
+      extension;
+
+
+    const result =
+      await supabaseClient
+        .storage
+        .from("product-images")
+        .upload(
+          fileName,
+          file,
+          {
+            cacheControl: "3600",
+            upsert: false
+          }
+        );
+
+
+    if (result.error) {
+
+      throw new Error(
+        "No se pudo subir la foto: " +
+        result.error.message
+      );
+
+    }
+
+
+    const publicResult =
+      supabaseClient
+        .storage
+        .from("product-images")
+        .getPublicUrl(fileName);
+
+
+    if (
+      !publicResult.data ||
+      !publicResult.data.publicUrl
+    ) {
+
+      throw new Error(
+        "La foto se subió, pero no se pudo obtener su URL."
+      );
+
+    }
+
+
+    return publicResult.data.publicUrl;
+
+  }
+
+
+  // -------------------------
+  // GUARDAR PRODUCTO
+  // -------------------------
+
+  async function saveProduct() {
+
+    const status =
+      document.getElementById(
+        "productStatus"
+      );
+
+    try {
+
+      status.textContent =
+        "🔄 Guardando producto...";
+
+
+      const userResult =
+        await supabaseClient.auth
+          .getUser();
+
+
+      const user =
+        userResult.data.user;
+
+
+      if (
+        !user ||
+        user.id !== ADMIN_ID
+      ) {
+
+        throw new Error(
+          "No estás autenticado como administrador."
+        );
+
+      }
+
+
+      const name =
+        document
+          .getElementById("name")
+          .value
+          .trim();
+
+
+      const category =
+        document
+          .getElementById("category")
+          .value;
+
+
+      const price =
+        Number(
+          document
+            .getElementById("price")
+            .value
+        );
+
+
+      const stock =
+        Number(
+          document
+            .getElementById("stock")
+            .value
+        );
+
+
+      const description =
+        document
+          .getElementById("description")
+          .value
+          .trim();
+
+
+      const file =
+        document
+          .getElementById("image")
+          .files[0];
+
+
+      if (!name) {
+
+        throw new Error(
+          "Ingresá el nombre del producto."
+        );
+
+      }
+
+
+      if (
+        !Number.isFinite(price) ||
+        price <= 0
+      ) {
+
+        throw new Error(
+          "Ingresá un precio de venta válido."
+        );
+
+      }
+
+
+      if (
+        !Number.isInteger(stock) ||
+        stock < 0
+      ) {
+
+        throw new Error(
+          "El stock debe ser un número entero igual o mayor a 0."
+        );
+
+      }
+
+
+      if (!file) {
+
+        throw new Error(
+          "Seleccioná una foto desde tu galería."
+        );
+
+      }
+
+
+      status.textContent =
+        "📷 Subiendo foto...";
+
+
+      const imageUrl =
+        await uploadImage(file);
+
+
+      status.textContent =
+        "💾 Guardando producto...";
+
+
+      const insertResult =
+        await supabaseClient
+          .from("products")
+          .insert({
+            user_id: user.id,
+            name: name,
+            category: category,
+            price: price,
+            stock: stock,
+            image_url: imageUrl,
+            description: description
+          });
+
+
+      if (insertResult.error) {
+
+        throw new Error(
+          "Supabase: " +
+          insertResult.error.message
+        );
+
+      }
+
+
+      status.textContent =
+        "✅ Producto guardado correctamente.";
+
+
+      document
+        .getElementById("name")
+        .value = "";
+
+
+      document
+        .getElementById("price")
+        .value = "";
+
+
+      document
+        .getElementById("stock")
+        .value = "";
+
+
+      document
+        .getElementById("description")
+        .value = "";
+
+
+      document
+        .getElementById("image")
+        .value = "";
+
+
+      await loadProducts();
+
+
+    } catch (error) {
+
+      console.error(
+        "Product save error:",
+        error
+      );
+
+      status.textContent =
+        "❌ " +
+        error.message;
+
+    }
+
+  }
+
+
+  // -------------------------
+  // CARGAR PRODUCTOS
+  // -------------------------
+
+  async function loadProducts() {
+
+    const container =
+      document.getElementById(
+        "productsList"
+      );
+
+
+    container.textContent =
+      "🔄 Cargando productos...";
+
+
+    try {
+
+      const result =
+        await supabaseClient
+          .from("products")
+          .select("*")
+          .eq("user_id", ADMIN_ID)
+          .order(
+            "created_at",
+            {
+              ascending: false
+            }
+          );
+
+
+      if (result.error) {
+
+        throw new Error(
+          "No se pudieron cargar los productos: " +
+          result.error.message
+        );
+
+      }
+
+
+      products =
+        result.data || [];
+
+
+      document
+        .getElementById("totalProducts")
+        .textContent =
+        products.length;
+
+
+      updateSaleProducts();
+
+
+      if (!products.length) {
+
+        container.innerHTML =
+          "<p>No hay productos cargados todavía.</p>";
+
+        return;
+
+      }
+
+
+      container.innerHTML =
+        products
+          .map(product => {
+
+            return `
+              <div class="product">
+
+                ${
+                  product.image_url
+                    ? `
+                      <img
+                        src="${escapeHtml(product.image_url)}"
+                        alt="${escapeHtml(product.name)}"
+                      >
+                    `
+                    : ""
+                }
+
+                <div class="product-name">
+                  ${escapeHtml(product.name)}
+                </div>
+
+                <div>
+                  Categoría:
+                  ${escapeHtml(product.category || "Otros")}
+                </div>
+
+                <div class="price">
+                  ${money(product.price)}
+                </div>
+
+                <div class="stock">
+                  Stock:
+                  ${product.stock}
+                </div>
+
+                ${
+                  product.description
+                    ? `
+                      <p>
+                        ${escapeHtml(product.description)}
+                      </p>
+                    `
+                    : ""
+                }
+
+              </div>
+            `;
+
+          })
+          .join("");
+
+
+    } catch (error) {
+
+      console.error(
+        "Product loading error:",
+        error
+      );
+
+      container.innerHTML =
+        `
+          <div class="error">
+            ❌ No se pudieron cargar los productos.
+            <br>
+            ${escapeHtml(error.message)}
+          </div>
+        `;
+
+    }
+
+  }
+
+
+  // -------------------------
+  // SELECT PRODUCTOS PARA VENTA
+  // -------------------------
+
+  function updateSaleProducts() {
+
+    const select =
+      document.getElementById(
+        "saleProduct"
+      );
+
+
+    select.innerHTML =
+      `
+        <option value="">
+          Seleccioná un producto
+        </option>
+      `;
+
+
+    products
+      .filter(
+        product =>
+          Number(product.stock) > 0
+      )
+      .forEach(product => {
+
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          product.id;
+
+        option.textContent =
+          product.name +
+          " — " +
+          money(product.price) +
+          " — Stock: " +
+          product.stock;
+
+        select.appendChild(
+          option
+        );
+
       });
 
-    if (error) {
-      status.textContent = "❌ " + error.message;
-      return;
-    }
+  }
 
-    if (!data.user) {
-      status.textContent = "❌ No se encontró el usuario.";
-      return;
-    }
 
-    if (data.user.id !== ADMIN_ID) {
-      await supabaseClient.auth.signOut();
+  // -------------------------
+  // REGISTRAR VENTA
+  // -------------------------
+
+  async function registerSale() {
+
+    const status =
+      document.getElementById(
+        "saleStatus"
+      );
+
+
+    try {
+
       status.textContent =
-        "❌ Esta cuenta no tiene permisos de administrador.";
-      return;
+        "🔄 Registrando venta...";
+
+
+      const productId =
+        document
+          .getElementById("saleProduct")
+          .value;
+
+
+      const quantity =
+        Number(
+          document
+            .getElementById("saleQuantity")
+            .value
+        );
+
+
+      if (!productId) {
+
+        throw new Error(
+          "Seleccioná un producto."
+        );
+
+      }
+
+
+      if (
+        !Number.isInteger(quantity) ||
+        quantity <= 0
+      ) {
+
+        throw new Error(
+          "Ingresá una cantidad válida."
+        );
+
+      }
+
+
+      const product =
+        products.find(
+          p =>
+            p.id === productId
+        );
+
+
+      if (!product) {
+
+        throw new Error(
+          "No se encontró el producto."
+        );
+
+      }
+
+
+      if (
+        quantity >
+        Number(product.stock)
+      ) {
+
+        throw new Error(
+          "No hay suficiente stock. Stock disponible: " +
+          product.stock
+        );
+
+      }
+
+
+      const userResult =
+        await supabaseClient.auth
+          .getUser();
+
+
+      const user =
+        userResult.data.user;
+
+
+      if (
+        !user ||
+        user.id !== ADMIN_ID
+      ) {
+
+        throw new Error(
+          "No estás autenticado como administrador."
+        );
+
+      }
+
+
+      const saleResult =
+        await supabaseClient
+          .from("sales")
+          .insert({
+            user_id: user.id,
+            product_id: product.id,
+            quantity: quantity,
+            unit_price: Number(
+              product.price
+            )
+          });
+
+
+      if (saleResult.error) {
+
+        throw new Error(
+          "No se pudo registrar la venta: " +
+          saleResult.error.message
+        );
+
+      }
+
+
+      const newStock =
+        Number(product.stock) -
+        quantity;
+
+
+      const updateResult =
+        await supabaseClient
+          .from("products")
+          .update({
+            stock: newStock
+          })
+          .eq(
+            "id",
+            product.id
+          )
+          .eq(
+            "user_id",
+            user.id
+          );
+
+
+      if (updateResult.error) {
+
+        throw new Error(
+          "La venta se registró, pero no se pudo actualizar el stock: " +
+          updateResult.error.message
+        );
+
+      }
+
+
+      status.textContent =
+        "✅ Venta registrada correctamente.";
+
+
+      document
+        .getElementById("saleQuantity")
+        .value = "1";
+
+
+      await loadProducts();
+      await loadSales();
+
+
+    } catch (error) {
+
+      console.error(
+        "Sale error:",
+        error
+      );
+
+      status.textContent =
+        "❌ " +
+        error.message;
+
     }
 
-    status.textContent = "✅ Ingreso correcto.";
-
-    await showAdmin();
-
-  } catch (error) {
-    status.textContent = "❌ Error: " + error.message;
-
-}
-
-
-// -------------------------
-// MOSTRAR PANEL
-// -------------------------
-
-async function showAdmin() {
-
-  document
-    .getElementById("loginScreen")
-    .classList.add("hidden");
-
-  document
-    .getElementById("adminPanel")
-    .classList.remove("hidden");
-
-  await loadProducts();
-
-  await loadSalesStats();
-
-}
-
-
-// -------------------------
-// COMPROBAR SESION
-// -------------------------
-
-async function checkSession() {
-
-  const { data } =
-    await supabaseClient.auth.getSession();
-
-  const user =
-    data.session?.user;
-
-  if (user && user.id === ADMIN_ID) {
-
-    showAdmin();
-
   }
 
-}
+
+  // -------------------------
+  // CARGAR VENTAS
+  // -------------------------
+
+  async function loadSales() {
+
+    const container =
+      document.getElementById(
+        "salesList"
+      );
 
 
-// -------------------------
-// CERRAR SESION
-// -------------------------
-
-async function logout() {
-
-  await supabaseClient.auth.signOut();
-
-  location.reload();
-
-}
+    container.textContent =
+      "🔄 Cargando ventas...";
 
 
-// -------------------------
-// SUBIR FOTO
-// -------------------------
+    try {
 
-async function uploadImage(file) {
+      const result =
+        await supabaseClient
+          .from("sales")
+          .select(
+            `
+              id,
+              quantity,
+              unit_price,
+              created_at,
+              product_id,
+              products (
+                name
+              )
+            `
+          )
+          .eq(
+            "user_id",
+            ADMIN_ID
+          )
+          .order(
+            "created_at",
+            {
+              ascending: false
+            }
+          );
 
-  if (!file) {
-    throw new Error("No seleccionaste ninguna foto.");
-  }
 
-  const extension =
-    file.name.split(".").pop().toLowerCase();
+      if (result.error) {
 
-  const fileName =
-    `${ADMIN_ID}/${crypto.randomUUID()}.${extension}`;
+        throw new Error(
+          "No se pudieron cargar las ventas: " +
+          result.error.message
+        );
 
-  const { error } =
-    await supabaseClient
-      .storage
-      .from("product-images")
-      .upload(
-        fileName,
-        file,
-        {
-          cacheControl: "3600",
-          upsert: false
+      }
+
+
+      const sales =
+        result.data || [];
+
+
+      let totalRevenue = 0;
+      let totalUnits = 0;
+
+
+      sales.forEach(
+        sale => {
+
+          totalRevenue +=
+            Number(
+              sale.unit_price
+            ) *
+            Number(
+              sale.quantity
+            );
+
+          totalUnits +=
+            Number(
+              sale.quantity
+            );
+
         }
       );
 
-  if (error) {
-    throw new Error(
-      "No se pudo subir la foto: " +
-      error.message
-    );
+
+      document
+        .getElementById("totalSales")
+        .textContent =
+        sales.length;
+
+
+      document
+        .getElementById("totalRevenue")
+        .textContent =
+        money(totalRevenue);
+
+
+      document
+        .getElementById("totalUnits")
+        .textContent =
+        totalUnits;
+
+
+      if (!sales.length) {
+
+        container.innerHTML =
+          "<p>Todavía no registraste ventas.</p>";
+
+        return;
+
+      }
+
+
+      container.innerHTML =
+        sales
+          .map(sale => {
+
+            const productName =
+              sale.products &&
+              sale.products.name
+                ? sale.products.name
+                : "Producto";
+
+
+            const total =
+              Number(
+                sale.unit_price
+              ) *
+              Number(
+                sale.quantity
+              );
+
+
+            const date =
+              new Date(
+                sale.created_at
+              );
+
+
+            return `
+              <div class="sale-row">
+
+                <strong>
+                  ${escapeHtml(productName)}
+                </strong>
+
+                <br>
+
+                Cantidad:
+                ${sale.quantity}
+
+                <br>
+
+                Precio:
+                ${money(sale.unit_price)}
+
+                <br>
+
+                Total:
+                <strong>
+                  ${money(total)}
+                </strong>
+
+                <br>
+
+                <small>
+                  ${date.toLocaleString("es-AR")}
+                </small>
+
+              </div>
+            `;
+
+          })
+          .join("");
+
+
+    } catch (error) {
+
+      console.error(
+        "Sales loading error:",
+        error
+      );
+
+      container.innerHTML =
+        `
+          <div class="error">
+            ❌ No se pudieron cargar las ventas.
+            <br>
+            ${escapeHtml(error.message)}
+          </div>
+        `;
+
+    }
+
   }
 
-  const { data } =
-    supabaseClient
-      .storage
-      .from("product-images")
-      .getPublicUrl(fileName);
 
-  return data.publicUrl;
-}
+  // -------------------------
+  // ESCAPAR HTML
+  // -------------------------
 
+  function escapeHtml(value) {
 
-// -------------------------
-// GUARDAR PRODUCTO
-// -------------------------
-
-async function saveProduct() {
-
-  const status =
-    document.getElementById("productStatus");
-
-  try {
-
-    status.textContent =
-      "Guardando producto...";
-
-    const {
-      data: userData
-    } = await supabaseClient.auth.getUser();
-
-    const user =
-      userData.user;
-
-    if (!user || user.id !== ADMIN_ID) {
-
-      throw new Error(
-        "No estás autenticado como administrador."
+    return String(value ?? "")
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+      .replace(
+        /'/g,
+        "&#039;"
       );
-    }
+
+  }
 
 
-    const name =
-      document
-        .getElementById("name")
-        .value
-        .trim();
+  // -------------------------
+  // COMPROBAR SESIÓN
+  // -------------------------
 
-    const category =
-      document
-        .getElementById("category")
-        .value;
+  async function checkSession() {
 
-    const cost =
-      Number(
+    try {
+
+      const result =
+        await supabaseClient.auth
+          .getUser();
+
+
+      const user =
+        result.data.user;
+
+
+      if (
+        user &&
+        user.id === ADMIN_ID
+      ) {
+
         document
-          .getElementById("cost")
-          .value
-      );
+          .getElementById("loginSection")
+          .classList
+          .add("hidden");
 
-    const price =
-      Number(
+
         document
-          .getElementById("price")
-          .value
+          .getElementById("adminSection")
+          .classList
+          .remove("hidden");
+
+
+        await loadAll();
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Session check error:",
+        error
       );
 
-    const stock =
-      Number(
-        document
-          .getElementById("stock")
-          .value
-      );
-
-    const description =
-      document
-        .getElementById("description")
-        .value
-        .trim();
-
-    const file =
-      document
-        .getElementById("image")
-        .files[0];
-
-
-    if (!name) {
-      throw new Error(
-        "Ingresá el nombre del producto."
-      );
     }
 
-    if (price <= 0) {
-      throw new Error(
-        "Ingresá un precio de venta válido."
-      );
-    }
-
-    if (stock < 0) {
-      throw new Error(
-        "El stock no puede ser negativo."
-      );
-    }
-
-    if (!file) {
-      throw new Error(
-        "Seleccioná una foto desde tu galería."
-      );
-    }
+  }
 
 
-    status.textContent =
-      "📷 Subiendo foto...";
+  // -------------------------
+  // INICIO
+  // -------------------------
 
+  checkSession();
 
-    const imageUrl =
-      await uploadImage(file);
+</script>
 
-
-    status.textContent =
-      "💾 Guardando producto...";
-
-
-    /*
-      Por ahora guardamos el costo
-      dentro de description junto con
-      la descripción original.
-
-      Después agregaremos una columna
-      específica para el costo.
-    */
-
-    const { error } =
-      await supabaseClient
-        .from("products")
-        .insert({
-          user_id: user.id,
-          name: name,
-          category: category,
-          price: price,
-          stock: stock,
-          image_url: imageUrl,
-          description: description
-        });
-
-
-    if (error) {
-
-      throw new Error(
-        "Supabase: " +
-        error.message
-      );
-    }
-
-
-    status.textContent =
-      "✅ Producto guardado correctamente.";
-
-
-    document
-      .getElementById("name")
-      .value = "";
-
-    document
-      .get
+</body>
+</html>
