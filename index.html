@@ -1398,12 +1398,6 @@
                   ✏️ Modificar
                 </button>
 
-                <button
-                  class="${active ? "btn-orange" : "btn-green"}"
-                  onclick="toggleProduct('${product.id}', ${active})"
-                >
-                  ${active ? "👁️ Ocultar" : "👁️ Mostrar"}
-                </button>
 
                 <button
                   class="btn-red"
@@ -1628,70 +1622,6 @@
     }
   }
   // =====================================================
-// OCULTAR / MOSTRAR PRODUCTO
-// =====================================================
-
-async function toggleProduct(id, currentlyActive) {
-
-  const action = currentlyActive ? "ocultar" : "mostrar";
-
-  if (!confirm(`¿Querés ${action} este producto?`)) {
-    return;
-  }
-
-  try {
-
-    const { data: { user }, error: authError } =
-      await supabaseClient.auth.getUser();
-
-    if (authError) {
-      throw new Error(authError.message);
-    }
-
-    if (!user || user.id !== ADMIN_ID) {
-      throw new Error("No estás autenticado como administrador.");
-    }
-
-    const { data, error } =
-      await supabaseClient
-        .from("products")
-        .update({
-          is_active: !currentlyActive
-        })
-        .eq("id", id)
-        .eq("user_id", user.id)
-        .select();
-
-    if (error) {
-      throw new Error(
-        "No se pudo cambiar el estado: " + error.message
-      );
-    }
-
-    if (!data || data.length === 0) {
-      throw new Error(
-        "No se modificó el producto. Revisá las políticas RLS."
-      );
-    }
-
-    await loadProducts();
-
-    alert(
-      currentlyActive
-        ? "✅ Producto ocultado."
-        : "✅ Producto mostrado."
-    );
-
-  } catch (error) {
-
-    console.error(error);
-
-    alert("❌ " + error.message);
-  }
-}
-
-
-// =====================================================
 // ELIMINAR PRODUCTO
 // =====================================================
 
@@ -1708,8 +1638,7 @@ async function deleteProduct(id) {
   const confirmed =
     confirm(
       `¿Seguro que querés eliminar "${product.name}"?\n\n` +
-      `Si este producto tiene ventas, se conservará el historial ` +
-      `y el producto quedará oculto en lugar de borrarse.`
+      `El producto se eliminará, pero sus comprobantes y ventas se conservarán.`
     );
 
   if (!confirmed) {
@@ -1731,58 +1660,6 @@ async function deleteProduct(id) {
       );
     }
 
-    // Primero comprobamos si tiene ventas
-    const { data: relatedSales, error: salesError } =
-      await supabaseClient
-        .from("sales")
-        .select("id")
-        .eq("product_id", id)
-        .limit(1);
-
-    if (salesError) {
-      throw new Error(
-        "No se pudo comprobar si tiene ventas: " +
-        salesError.message
-      );
-    }
-
-    // Si tiene ventas, NO lo borramos físicamente
-    if (relatedSales && relatedSales.length > 0) {
-
-      const { data, error } =
-        await supabaseClient
-          .from("products")
-          .update({
-            is_active: false
-          })
-          .eq("id", id)
-          .eq("user_id", user.id)
-          .select();
-
-      if (error) {
-        throw new Error(
-          "No se pudo ocultar el producto: " +
-          error.message
-        );
-      }
-
-      if (!data || data.length === 0) {
-        throw new Error(
-          "No se pudo modificar el producto."
-        );
-      }
-
-      await loadProducts();
-
-      alert(
-        "✅ El producto fue ocultado porque tiene ventas asociadas. " +
-        "El historial de ventas quedó intacto."
-      );
-
-      return;
-    }
-
-    // Si NO tiene ventas, lo eliminamos realmente
     const { error: deleteError } =
       await supabaseClient
         .from("products")
@@ -1798,6 +1675,7 @@ async function deleteProduct(id) {
     }
 
     await loadProducts();
+    await loadSales();
 
     alert("✅ Producto eliminado correctamente.");
 
