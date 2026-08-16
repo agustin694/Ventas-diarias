@@ -405,6 +405,18 @@
       border-radius: 7px;
     }
 
+    .stock-controls {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .stock-controls button {
+      margin: 0;
+      padding: 10px;
+    }
+
     @media (max-width: 800px) {
       .stats {
         grid-template-columns: repeat(2, 1fr);
@@ -457,6 +469,10 @@
 
       .image-admin-row button {
         grid-column: 1 / -1;
+      }
+
+      .stock-controls {
+        grid-template-columns: 1fr 1fr;
       }
     }
 
@@ -987,8 +1003,57 @@
     <label>Precio</label>
     <input id="editPrice" type="number" min="0" step="0.01">
 
-    <label>Stock</label>
-    <input id="editStock" type="number" min="0" step="1">
+    <!-- STOCK MODIFICABLE -->
+    <label>📦 Stock</label>
+
+    <div class="stock-controls">
+
+      <button
+        type="button"
+        class="btn-red"
+        onclick="changeEditStock(-5)"
+      >
+        ➖ -5
+      </button>
+
+      <button
+        type="button"
+        class="btn-orange"
+        onclick="changeEditStock(-1)"
+      >
+        ➖ -1
+      </button>
+
+      <button
+        type="button"
+        class="btn-blue"
+        onclick="changeEditStock(1)"
+      >
+        ➕ +1
+      </button>
+
+      <button
+        type="button"
+        class="btn-green"
+        onclick="changeEditStock(5)"
+      >
+        ➕ +5
+      </button>
+
+    </div>
+
+    <input
+      id="editStock"
+      type="number"
+      min="0"
+      step="1"
+      value="0"
+      placeholder="Cantidad en stock"
+    >
+
+    <div class="small">
+      Podés escribir la cantidad exacta o usar los botones rápidos.
+    </div>
 
     <label>Descripción</label>
     <textarea id="editDescription"></textarea>
@@ -1360,6 +1425,29 @@
       "input",
       updateEditProfitPreview
     );
+
+  // =====================================================
+  // MODIFICAR STOCK RAPIDAMENTE
+  // =====================================================
+
+  function changeEditStock(amount) {
+
+    const input =
+      document.getElementById(
+        "editStock"
+      );
+
+    let stock =
+      Number(input.value) || 0;
+
+    stock += amount;
+
+    if (stock < 0) {
+      stock = 0;
+    }
+
+    input.value = stock;
+  }
 
   // =====================================================
   // GARANTIA
@@ -1766,6 +1854,7 @@
 
       updateSaleProducts();
       renderProducts();
+      updateSalePreview();
 
     } catch (error) {
 
@@ -2023,6 +2112,9 @@
         "saleProduct"
       );
 
+    const previousValue =
+      select.value;
+
     select.innerHTML =
       `
         <option value="">
@@ -2056,6 +2148,18 @@
           option
         );
       });
+
+    if (
+      previousValue &&
+      Array.from(select.options)
+        .some(
+          option =>
+            option.value === previousValue
+        )
+    ) {
+      select.value =
+        previousValue;
+    }
   }
 
   // =====================================================
@@ -2944,7 +3048,7 @@
       calculateGeneralStats();
       calculateTodayStats();
       calculatePeriodStats(
-        getDefaultPeriod()
+        getCurrentSelectedPeriod()
       );
       renderTopProducts();
       renderSales();
@@ -3196,6 +3300,32 @@
       to:
         dateKey(today)
     };
+  }
+
+  function getCurrentSelectedPeriod() {
+
+    const from =
+      document.getElementById(
+        "statsFrom"
+      ).value;
+
+    const to =
+      document.getElementById(
+        "statsTo"
+      ).value;
+
+    if (
+      from &&
+      to &&
+      from <= to
+    ) {
+      return {
+        from,
+        to
+      };
+    }
+
+    return getDefaultPeriod();
   }
 
   // =====================================================
@@ -3707,7 +3837,7 @@
                     '${sale.id}'
                   )"
                 >
-                  🗑️ Eliminar venta
+                  🗑️ Eliminar comprobante
                 </button>
 
               </div>
@@ -3726,7 +3856,7 @@
     );
 
   // =====================================================
-  // ELIMINAR VENTA
+  // ELIMINAR VENTA / COMPROBANTE
   // =====================================================
 
   async function deleteSale(id) {
@@ -3739,25 +3869,36 @@
     if (!sale) {
 
       alert(
-        "No se encontró la venta."
+        "❌ No se encontró el comprobante."
       );
 
       return;
     }
 
+    const receipt =
+      String(
+        sale.receipt_number || ""
+      ).padStart(
+        6,
+        "0"
+      );
+
     const productName =
       sale.product_name ||
-      "Producto";
+      "Producto eliminado";
+
+    const quantity =
+      Number(
+        sale.quantity
+      ) || 0;
 
     const confirmed =
       confirm(
-        `¿Eliminar el comprobante #${
-          String(
-            sale.receipt_number || ""
-          ).padStart(6, "0")
-        }?\n\n` +
-        `Producto: ${productName}\n\n` +
-        "Esta acción eliminará la venta del historial."
+        `¿Seguro que querés eliminar el comprobante #${receipt}?\n\n` +
+        `📦 Producto: ${productName}\n` +
+        `🔢 Cantidad: ${quantity}\n\n` +
+        `⚠️ Al eliminar la venta, esas unidades volverán automáticamente al stock.\n\n` +
+        `Esta acción no se puede deshacer.`
       );
 
     if (!confirmed) {
@@ -3766,7 +3907,68 @@
 
     try {
 
-      const result =
+      // -------------------------------------------------
+      // VERIFICAR USUARIO
+      // -------------------------------------------------
+
+      const auth =
+        await supabaseClient.auth.getUser();
+
+      const user =
+        auth.data.user;
+
+      if (
+        !user ||
+        user.id !== ADMIN_ID
+      ) {
+
+        throw new Error(
+          "No estás autenticado como administrador."
+        );
+      }
+
+      // -------------------------------------------------
+      // BUSCAR PRODUCTO PARA RESTAURAR STOCK
+      // -------------------------------------------------
+
+      let product =
+        null;
+
+      if (sale.product_id) {
+
+        const productResult =
+          await supabaseClient
+            .from("products")
+            .select(
+              "id, stock"
+            )
+            .eq(
+              "id",
+              sale.product_id
+            )
+            .eq(
+              "user_id",
+              user.id
+            )
+            .maybeSingle();
+
+        if (productResult.error) {
+
+          throw new Error(
+            "No se pudo consultar el stock: " +
+            productResult.error.message
+          );
+        }
+
+        product =
+          productResult.data;
+      }
+
+      // -------------------------------------------------
+      // ELIMINAR COMPROBANTE
+      // -------------------------------------------------
+
+      const deleteResult =
         await supabaseClient
           .from("sales")
           .delete()
@@ -3776,25 +3978,102 @@
           )
           .eq(
             "user_id",
-            ADMIN_ID
+            user.id
           );
 
-      if (result.error) {
+      if (deleteResult.error) {
+
         throw new Error(
-          "No se pudo eliminar la venta: " +
-          result.error.message
+          "No se pudo eliminar el comprobante: " +
+          deleteResult.error.message
         );
       }
 
+      // -------------------------------------------------
+      // RESTAURAR STOCK
+      // -------------------------------------------------
+
+      if (product) {
+
+        const newStock =
+          Number(product.stock || 0) +
+          quantity;
+
+        const stockResult =
+          await supabaseClient
+            .from("products")
+            .update({
+              stock: newStock
+            })
+            .eq(
+              "id",
+              product.id
+            )
+            .eq(
+              "user_id",
+              user.id
+            );
+
+        if (stockResult.error) {
+
+          console.error(
+            "No se pudo restaurar el stock:",
+            stockResult.error
+          );
+
+          alert(
+            "⚠️ El comprobante fue eliminado, " +
+            "pero no se pudo restaurar automáticamente el stock.\n\n" +
+            "Revisá el stock del producto manualmente."
+          );
+        }
+      }
+
+      // -------------------------------------------------
+      // RECARGAR PRODUCTOS Y VENTAS
+      // -------------------------------------------------
+
+      await loadProducts();
       await loadSales();
 
+      // -------------------------------------------------
+      // ACTUALIZAR PERÍODO SELECCIONADO
+      // -------------------------------------------------
+
+      const period =
+        getCurrentSelectedPeriod();
+
+      calculatePeriodStats(
+        period
+      );
+
+      // -------------------------------------------------
+      // ACTUALIZAR RESUMEN
+      // -------------------------------------------------
+
+      calculateGeneralStats();
+      calculateTodayStats();
+      renderTopProducts();
+      renderSales();
+
+      // -------------------------------------------------
+      // CERRAR COMPROBANTE SI ESTABA ABIERTO
+      // -------------------------------------------------
+
+      closeReceipt();
+
       alert(
-        "✅ Venta eliminada."
+        `✅ Comprobante #${receipt} eliminado correctamente.\n\n` +
+        `📦 Se restauraron ${quantity} unidad(es) al stock.\n` +
+        `📊 El resumen general fue actualizado.`
       );
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        "Error al eliminar venta:",
+        error
+      );
 
       alert(
         "❌ " +
