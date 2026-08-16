@@ -755,8 +755,12 @@
 
 
   let products = [];
-  let sales = [];
-  let currentReceipt = null;
+let sales = [];
+let currentReceipt = null;
+
+let currentUser = null;
+let currentRole = null;
+let currentBusinessId = null;
 
 
   // =====================================================
@@ -838,26 +842,65 @@
 
       if (result.error) {
 
-        status.textContent =
-          "❌ " +
-          result.error.message;
+  status.textContent =
+    "❌ " +
+    result.error.message;
 
-        return;
+  return;
 
-      }
+}
 
+if (
+  !result.data ||
+  !result.data.user
+) {
 
-      if (
-        !result.data ||
-        !result.data.user
-      ) {
+  status.textContent =
+    "❌ Supabase no devolvió el usuario.";
 
-        status.textContent =
-          "❌ Supabase no devolvió el usuario.";
+  return;
 
-        return;
+}
 
-      }
+currentUser =
+  result.data.user;
+
+const roleResult =
+  await supabaseClient
+    .rpc("my_business_role");
+
+if (roleResult.error) {
+
+  console.error(roleResult.error);
+
+  await supabaseClient.auth.signOut();
+
+  status.textContent =
+    "❌ No se pudo comprobar el rol del usuario.";
+
+  return;
+
+}
+
+currentRole =
+  roleResult.data;
+
+if (
+  currentRole !== "owner" &&
+  currentRole !== "seller"
+) {
+
+  await supabaseClient.auth.signOut();
+
+  status.textContent =
+    "❌ Esta cuenta no tiene permisos para este negocio.";
+
+  return;
+
+}
+
+currentBusinessId =
+  "56b0bd35-4be0-4116-91fd-cbecd53219b6";
 
 
       if (
