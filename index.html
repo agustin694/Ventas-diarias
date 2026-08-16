@@ -1,281 +1,289 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ventas Diarias</title>
 
-  <title>Ventas Diarias</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f3f4f6;
+  color:#111827
+}
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f3f4f6;
-      color: #111827;
-    }
+header{
+  background:#111827;
+  color:white;
+  padding:20px;
+  text-align:center
+}
 
-    header {
-      background: #111827;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
+header h1{margin:0;font-size:25px}
 
-    header h1 {
-      margin: 0;
-      font-size: 25px;
-    }
+.container{
+  width:94%;
+  max-width:950px;
+  margin:20px auto
+}
 
-    .container {
-      width: 94%;
-      max-width: 950px;
-      margin: 20px auto;
-    }
+.card{
+  background:white;
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:0 3px 15px rgba(0,0,0,.08)
+}
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 3px 15px rgba(0,0,0,0.08);
-    }
+h2{margin-top:0;font-size:21px}
 
-    h2 {
-      margin-top: 0;
-      font-size: 21px;
-    }
+input,select,textarea,button{
+  width:100%;
+  padding:13px;
+  margin-top:8px;
+  margin-bottom:12px;
+  border-radius:9px;
+  border:1px solid #d1d5db;
+  font-size:16px
+}
 
-    input,
-    select,
-    textarea,
-    button {
-      width: 100%;
-      padding: 13px;
-      margin-top: 8px;
-      margin-bottom: 12px;
-      border-radius: 9px;
-      border: 1px solid #d1d5db;
-      font-size: 16px;
-    }
+textarea{
+  min-height:90px;
+  resize:vertical
+}
 
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
+button{
+  background:#111827;
+  color:white;
+  border:none;
+  font-weight:bold;
+  cursor:pointer
+}
 
-    button {
-      background: #111827;
-      color: white;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-    }
+button:hover{opacity:.9}
 
-    button:hover {
-      opacity: .9;
-    }
+.hidden{display:none!important}
 
-    .hidden {
-      display: none !important;
-    }
+.status{
+  min-height:22px;
+  margin:8px 0;
+  font-weight:bold
+}
 
-    .status {
-      min-height: 22px;
-      margin: 8px 0;
-      font-weight: bold;
-    }
+.success{color:#15803d}
+.error{color:#dc2626}
 
-    .success {
-      color: #15803d;
-    }
+.stats{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px
+}
 
-    .error {
-      color: #dc2626;
-    }
+.stat{
+  background:#f3f4f6;
+  border-radius:12px;
+  padding:15px;
+  font-weight:bold
+}
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
+.stat-number{
+  display:block;
+  margin-top:7px;
+  font-size:20px
+}
 
-    .stat {
-      background: #f3f4f6;
-      border-radius: 12px;
-      padding: 15px;
-      font-weight: bold;
-    }
+.payment-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px
+}
 
-    .stat-number {
-      display: block;
-      margin-top: 7px;
-      font-size: 20px;
-    }
+.payment-box{
+  background:#f3f4f6;
+  border-radius:12px;
+  padding:14px;
+  text-align:center;
+  font-weight:bold
+}
 
-    .payment-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
+.payment-box strong{
+  display:block;
+  margin-top:7px;
+  font-size:18px
+}
 
-    .payment-box {
-      background: #f3f4f6;
-      border-radius: 12px;
-      padding: 14px;
-      text-align: center;
-      font-weight: bold;
-    }
+.product,.sale-row{
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:12px;
+  background:#fff
+}
 
-    .payment-box strong {
-      display: block;
-      margin-top: 7px;
-      font-size: 18px;
-    }
+.product.inactive{
+  opacity:.65;
+  background:#f9fafb
+}
 
-    .product,
-    .sale-row {
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 12px;
-      background: #fff;
-    }
+.product img{
+  width:100%;
+  max-height:230px;
+  object-fit:contain;
+  border-radius:10px;
+  background:#f9fafb;
+  margin-bottom:10px
+}
 
-    .product img {
-      width: 100%;
-      max-height: 230px;
-      object-fit: contain;
-      border-radius: 10px;
-      background: #f9fafb;
-      margin-bottom: 10px;
-    }
+.product-name{
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:6px
+}
 
-    .product-name {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
+.price{
+  font-size:19px;
+  font-weight:bold;
+  margin:7px 0
+}
 
-    .price {
-      font-size: 19px;
-      font-weight: bold;
-      margin: 7px 0;
-    }
+.profit{
+  color:#15803d;
+  font-weight:bold;
+  margin:7px 0
+}
 
-    .profit {
-      color: #15803d;
-      font-weight: bold;
-      margin: 7px 0;
-    }
+.stock{
+  color:#374151;
+  margin:7px 0
+}
 
-    .stock {
-      color: #374151;
-      margin: 7px 0;
-    }
+.sale-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px
+}
 
-    .sale-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 12px;
-    }
+.product-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px
+}
 
-    .btn-green {
-      background: #15803d;
-    }
+.btn-green{background:#15803d}
+.btn-blue{background:#2563eb}
+.btn-whatsapp{background:#16a34a}
+.btn-print{background:#4b5563}
+.btn-red{background:#dc2626}
+.btn-orange{background:#ea580c}
 
-    .btn-blue {
-      background: #2563eb;
-    }
+.receipt{
+  background:white;
+  max-width:500px;
+  margin:auto;
+  padding:25px;
+  border-radius:14px;
+  border:1px solid #ddd
+}
 
-    .btn-whatsapp {
-      background: #16a34a;
-    }
+.receipt-header{
+  text-align:center;
+  margin-bottom:20px
+}
 
-    .btn-print {
-      background: #4b5563;
-    }
+.receipt-line{
+  border-bottom:1px dashed #999;
+  padding:9px 0
+}
 
-    .btn-red {
-      background: #dc2626;
-    }
+.receipt-total{
+  font-size:23px;
+  font-weight:bold;
+  text-align:right;
+  margin-top:15px
+}
 
-    .receipt {
-      background: white;
-      max-width: 500px;
-      margin: auto;
-      padding: 25px;
-      border-radius: 14px;
-      border: 1px solid #ddd;
-    }
+.small{
+  color:#6b7280;
+  font-size:13px
+}
 
-    .receipt-header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+label{
+  display:block;
+  font-weight:bold;
+  margin-top:8px
+}
 
-    .receipt-line {
-      border-bottom: 1px dashed #999;
-      padding: 9px 0;
-    }
+.liquidation-option{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:bold;
+  margin:12px 0
+}
 
-    .receipt-total {
-      font-size: 23px;
-      font-weight: bold;
-      text-align: right;
-      margin-top: 15px;
-    }
+.liquidation-option input{
+  width:auto;
+  margin:0
+}
 
-    .small {
-      color: #6b7280;
-      font-size: 13px;
-    }
+.badge{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+  margin:3px 0
+}
 
-    label {
-      display: block;
-      font-weight: bold;
-      margin-top: 8px;
-    }
+.badge-active{
+  background:#dcfce7;
+  color:#166534
+}
 
-    @media (max-width: 650px) {
-      .payment-grid {
-        grid-template-columns: 1fr;
-      }
+.badge-hidden{
+  background:#fee2e2;
+  color:#991b1b
+}
 
-      .stats {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
+.badge-liquidation{
+  background:#ffedd5;
+  color:#9a3412
+}
 
-    @media print {
-      body * {
-        visibility: hidden;
-      }
+@media(max-width:650px){
+  .payment-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .product-actions,.sale-actions{grid-template-columns:1fr}
+}
 
-      #receiptModal,
-      #receiptModal * {
-        visibility: visible;
-      }
+@media print{
+  body *{visibility:hidden}
 
-      #receiptModal {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        background: white;
-      }
+  #receiptModal,
+  #receiptModal *{
+    visibility:visible
+  }
 
-      .no-print {
-        display: none !important;
-      }
-    }
-  </style>
+  #receiptModal{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    background:white
+  }
+
+  .no-print{
+    display:none!important
+  }
+}
+</style>
 </head>
 
 <body>
@@ -286,399 +294,339 @@
 
 <div class="container">
 
-  <!-- LOGIN -->
-  <section id="loginSection" class="card">
+<!-- LOGIN -->
+<section id="loginSection" class="card">
 
-    <h2>🔐 Iniciar sesión</h2>
+  <h2>🔐 Iniciar sesión</h2>
 
-    <input
-      id="email"
-      type="email"
-      placeholder="Email"
-      autocomplete="email"
-    >
-
-    <input
-      id="password"
-      type="password"
-      placeholder="Contraseña"
-      autocomplete="current-password"
-    >
-
-    <button onclick="login()">
-      Ingresar
-    </button>
-
-    <div id="loginStatus" class="status">
-      Esperando...
-    </div>
-
-  </section>
-
-
-  <!-- ADMIN -->
-  <main id="adminSection" class="hidden">
-
-    <!-- RESUMEN -->
-    <div class="card">
-
-      <h2>📈 Resumen general</h2>
-
-      <div class="stats">
-
-        <div class="stat">
-          Ventas
-          <span id="totalSales" class="stat-number">
-            0
-          </span>
-        </div>
-
-        <div class="stat">
-          Dinero vendido
-          <span id="totalRevenue" class="stat-number">
-            $0
-          </span>
-        </div>
-
-        <div class="stat">
-          Ganancia
-          <span id="totalProfit" class="stat-number">
-            $0
-          </span>
-        </div>
-
-        <div class="stat">
-          Unidades
-          <span id="totalUnits" class="stat-number">
-            0
-          </span>
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- DINERO DE HOY -->
-    <div class="card">
-
-      <h2>💰 Dinero de hoy por forma de pago</h2>
-
-      <div class="payment-grid">
-
-        <div class="payment-box">
-          💵 Efectivo
-          <strong id="cashToday">$0</strong>
-        </div>
-
-        <div class="payment-box">
-          📱 Mercado Pago
-          <strong id="mpToday">$0</strong>
-        </div>
-
-        <div class="payment-box">
-          💳 Tarjeta
-          <strong id="cardToday">$0</strong>
-        </div>
-
-      </div>
-
-      <p>
-        <strong>Total de hoy:</strong>
-        <span id="todayTotal">$0</span>
-      </p>
-
-      <p>
-        <strong>Ganancia de hoy:</strong>
-        <span id="todayProfit">$0</span>
-      </p>
-
-    </div>
-
-
-    <!-- AGREGAR PRODUCTO -->
-    <div class="card">
-
-      <h2>➕ Agregar producto</h2>
-
-      <input
-        id="name"
-        type="text"
-        placeholder="Nombre del producto"
-      >
-
-      <select id="category">
-        <option value="Deportes">🏅 Deportes</option>
-        <option value="Otros">Otros</option>
-        <option value="Electrodomésticos">Electrodomésticos</option>
-        <option value="Cocina">Cocina</option>
-        <option value="Hogar">Hogar</option>
-        <option value="Tecnología">Tecnología</option>
-        <option value="Audio">Audio</option>
-        <option value="Televisores">Televisores</option>
-        <option value="Línea blanca">Línea blanca</option>
-
-      </select>
-
-
-      <label>
-        🆕 Estado del producto
-      </label>
-
-      <label>
-  🆕 Estado del producto
-</label>
-
-<select id="productCondition">
-  <option value="Nuevo">
-    🆕 Nuevo
-  </option>
-
-  <option value="Usado">
-    ♻️ Usado
-  </option>
-
-  <option value="Reacondicionado">
-    🔧 Reacondicionado
-  </option>
-
-  <option value="Solo detalle">
-    📝 Solo detalle
-  </option>
-</select>
-
-<label class="liquidation-option">
   <input
-    id="isLiquidation"
-    type="checkbox"
+    id="email"
+    type="email"
+    placeholder="Email"
+    autocomplete="email"
   >
 
-  🔥 Producto en liquidación
-</label>
+  <input
+    id="password"
+    type="password"
+    placeholder="Contraseña"
+    autocomplete="current-password"
+  >
+
+  <button onclick="login()">Ingresar</button>
+
+  <div id="loginStatus" class="status"></div>
+
+</section>
 
 
-      <input
-        id="cost"
-        type="number"
-        min="0"
-        step="0.01"
-        placeholder="Costo de compra"
-      >
+<!-- ADMIN -->
+<main id="adminSection" class="hidden">
 
-      <input
-        id="price"
-        type="number"
-        min="0"
-        step="0.01"
-        placeholder="Precio de venta"
-      >
+<!-- RESUMEN -->
+<div class="card">
 
-      <div id="productProfitPreview" class="profit">
-        Ganancia por unidad: $0
-      </div>
+  <h2>📈 Resumen general</h2>
 
+  <div class="stats">
 
-      <input
-        id="stock"
-        type="number"
-        min="0"
-        step="1"
-        placeholder="Cantidad en stock"
-      >
-
-      <textarea
-        id="description"
-        placeholder="Descripción del producto"
-      ></textarea>
-
-
-      <label>
-        📷 Fotos del producto
-      </label>
-
-      <input
-        id="images"
-        type="file"
-        accept="image/*"
-        multiple
-      >
-
-      <div class="small">
-        Podés seleccionar varias fotos. La primera será la foto principal.
-      </div>
-
-
-      <button
-        class="btn-green"
-        onclick="saveProduct()"
-      >
-        💾 Guardar producto
-      </button>
-
-      <div id="productStatus" class="status"></div>
-
+    <div class="stat">
+      Ventas
+      <span id="totalSales" class="stat-number">0</span>
     </div>
 
-
-    <!-- REGISTRAR VENTA -->
-    <div class="card">
-
-      <h2>🧾 Registrar venta</h2>
-
-      <select id="saleProduct">
-        <option value="">
-          Seleccioná un producto
-        </option>
-      </select>
-
-      <input
-        id="saleQuantity"
-        type="number"
-        min="1"
-        step="1"
-        value="1"
-        placeholder="Cantidad"
-      >
-
-
-      <label>
-        👤 Nombre del cliente
-      </label>
-
-      <input
-        id="customerName"
-        type="text"
-        placeholder="Opcional"
-      >
-
-
-      <label>
-        📱 Teléfono del cliente
-      </label>
-
-      <input
-        id="customerPhone"
-        type="tel"
-        placeholder="Opcional"
-      >
-
-
-      <label>
-        💳 Forma de pago
-      </label>
-
-      <select id="paymentMethod">
-
-        <option value="Efectivo">
-          💵 Efectivo
-        </option>
-
-        <option value="Mercado Pago">
-          📱 Mercado Pago
-        </option>
-
-        <option value="Tarjeta">
-          💳 Tarjeta
-        </option>
-
-      </select>
-
-
-      <label>
-        🛡️ Garantía
-      </label>
-
-      <select id="warrantyDays">
-
-        <option value="0">
-          Sin garantía
-        </option>
-
-        <option value="7">
-          7 días
-        </option>
-
-        <option value="15">
-          15 días
-        </option>
-
-        <option value="30">
-          30 días
-        </option>
-
-        <option value="60">
-          60 días
-        </option>
-
-        <option value="90">
-          90 días
-        </option>
-
-        <option value="custom">
-          Personalizada
-        </option>
-
-      </select>
-
-
-      <input
-        id="customWarranty"
-        type="number"
-        min="1"
-        placeholder="Cantidad de días"
-        class="hidden"
-      >
-
-
-      <button
-        class="btn-blue"
-        onclick="registerSale()"
-      >
-        ✅ Registrar venta
-      </button>
-
-      <div id="saleStatus" class="status"></div>
-
+    <div class="stat">
+      Dinero vendido
+      <span id="totalRevenue" class="stat-number">$0</span>
     </div>
 
-
-    <!-- PRODUCTOS -->
-    <div class="card">
-
-      <h2>📦 Mis productos</h2>
-
-      <div id="productsList">
-        Cargando productos...
-      </div>
-
+    <div class="stat">
+      Ganancia
+      <span id="totalProfit" class="stat-number">$0</span>
     </div>
 
-
-    <!-- VENTAS -->
-    <div class="card">
-
-      <h2>🧾 Últimas ventas</h2>
-
-      <div id="salesList">
-        Cargando ventas...
-      </div>
-
+    <div class="stat">
+      Unidades
+      <span id="totalUnits" class="stat-number">0</span>
     </div>
 
+  </div>
 
-    <div class="card">
+</div>
 
-      <button
-        class="btn-red"
-        onclick="logout()"
-      >
-        Cerrar sesión
-      </button>
 
+<!-- DINERO DE HOY -->
+<div class="card">
+
+  <h2>💰 Dinero de hoy por forma de pago</h2>
+
+  <div class="payment-grid">
+
+    <div class="payment-box">
+      💵 Efectivo
+      <strong id="cashToday">$0</strong>
     </div>
 
-  </main>
+    <div class="payment-box">
+      📱 Mercado Pago
+      <strong id="mpToday">$0</strong>
+    </div>
 
+    <div class="payment-box">
+      💳 Tarjeta
+      <strong id="cardToday">$0</strong>
+    </div>
+
+  </div>
+
+  <p>
+    <strong>Total de hoy:</strong>
+    <span id="todayTotal">$0</span>
+  </p>
+
+  <p>
+    <strong>Ganancia de hoy:</strong>
+    <span id="todayProfit">$0</span>
+  </p>
+
+</div>
+
+
+<!-- AGREGAR PRODUCTO -->
+<div class="card">
+
+  <h2>➕ Agregar producto</h2>
+
+  <input
+    id="name"
+    type="text"
+    placeholder="Nombre del producto"
+  >
+
+  <select id="category">
+    <option value="Deportes">🏅 Deportes</option>
+    <option value="Otros">Otros</option>
+    <option value="Electrodomésticos">Electrodomésticos</option>
+    <option value="Cocina">Cocina</option>
+    <option value="Hogar">Hogar</option>
+    <option value="Tecnología">Tecnología</option>
+    <option value="Audio">Audio</option>
+    <option value="Televisores">Televisores</option>
+    <option value="Línea blanca">Línea blanca</option>
+  </select>
+
+  <label>🆕 Estado del producto</label>
+
+  <select id="productCondition">
+
+    <option value="Nuevo">🆕 Nuevo</option>
+
+    <option value="Usado">♻️ Usado</option>
+
+    <option value="Reacondicionado">
+      🔧 Reacondicionado
+    </option>
+
+    <option value="Solo detalle">
+      📝 Solo detalle
+    </option>
+
+  </select>
+
+  <label class="liquidation-option">
+
+    <input
+      id="isLiquidation"
+      type="checkbox"
+    >
+
+    🔥 Producto en liquidación
+
+  </label>
+
+  <input
+    id="cost"
+    type="number"
+    min="0"
+    step="0.01"
+    placeholder="Costo de compra"
+  >
+
+  <input
+    id="price"
+    type="number"
+    min="0"
+    step="0.01"
+    placeholder="Precio de venta"
+  >
+
+  <div id="productProfitPreview" class="profit">
+    Ganancia por unidad: $0
+  </div>
+
+  <input
+    id="stock"
+    type="number"
+    min="0"
+    step="1"
+    placeholder="Cantidad en stock"
+  >
+
+  <textarea
+    id="description"
+    placeholder="Descripción del producto"
+  ></textarea>
+
+  <label>📷 Fotos del producto</label>
+
+  <input
+    id="images"
+    type="file"
+    accept="image/*"
+    multiple
+  >
+
+  <div class="small">
+    Podés seleccionar varias fotos.
+    La primera será la foto principal.
+  </div>
+
+  <button
+    class="btn-green"
+    onclick="saveProduct()"
+  >
+    💾 Guardar producto
+  </button>
+
+  <div id="productStatus" class="status"></div>
+
+</div>
+
+
+<!-- REGISTRAR VENTA -->
+<div class="card">
+
+  <h2>🧾 Registrar venta</h2>
+
+  <select id="saleProduct">
+    <option value="">
+      Seleccioná un producto
+    </option>
+  </select>
+
+  <input
+    id="saleQuantity"
+    type="number"
+    min="1"
+    step="1"
+    value="1"
+    placeholder="Cantidad"
+  >
+
+  <label>👤 Nombre del cliente</label>
+
+  <input
+    id="customerName"
+    type="text"
+    placeholder="Opcional"
+  >
+
+  <label>📱 Teléfono del cliente</label>
+
+  <input
+    id="customerPhone"
+    type="tel"
+    placeholder="Opcional"
+  >
+
+  <label>💳 Forma de pago</label>
+
+  <select id="paymentMethod">
+
+    <option value="Efectivo">
+      💵 Efectivo
+    </option>
+
+    <option value="Mercado Pago">
+      📱 Mercado Pago
+    </option>
+
+    <option value="Tarjeta">
+      💳 Tarjeta
+    </option>
+
+  </select>
+
+  <label>🛡️ Garantía</label>
+
+  <select id="warrantyDays">
+
+    <option value="0">Sin garantía</option>
+    <option value="7">7 días</option>
+    <option value="15">15 días</option>
+    <option value="30">30 días</option>
+    <option value="60">60 días</option>
+    <option value="90">90 días</option>
+    <option value="custom">Personalizada</option>
+
+  </select>
+
+  <input
+    id="customWarranty"
+    type="number"
+    min="1"
+    placeholder="Cantidad de días"
+    class="hidden"
+  >
+
+  <button
+    class="btn-blue"
+    onclick="registerSale()"
+  >
+    ✅ Registrar venta
+  </button>
+
+  <div id="saleStatus" class="status"></div>
+
+</div>
+
+
+<!-- PRODUCTOS -->
+<div class="card">
+
+  <h2>📦 Mis productos</h2>
+
+  <div id="productsList">
+    Cargando productos...
+  </div>
+
+</div>
+
+
+<!-- VENTAS -->
+<div class="card">
+
+  <h2>🧾 Últimas ventas</h2>
+
+  <div id="salesList">
+    Cargando ventas...
+  </div>
+
+</div>
+
+
+<div class="card">
+
+  <button
+    class="btn-red"
+    onclick="logout()"
+  >
+    Cerrar sesión
+  </button>
+
+</div>
+
+</main>
 </div>
 
 
@@ -716,9 +664,7 @@
         🖨️ Imprimir / Guardar PDF
       </button>
 
-      <button
-        onclick="closeReceipt()"
-      >
+      <button onclick="closeReceipt()">
         Cerrar
       </button>
 
@@ -731,2192 +677,1970 @@
 
 <script>
 
-  // =====================================================
-  // SUPABASE
-  // =====================================================
+/* =====================================================
+   SUPABASE
+===================================================== */
 
-  const SUPABASE_URL =
-    "https://hovuypchngweflamnubr.supabase.co";
+const SUPABASE_URL =
+  "https://hovuypchngweflamnubr.supabase.co";
 
-  const SUPABASE_KEY =
-    "sb_publishable_DomJB-3gsWOZ2HBkYlSfAQ_59cvT9uM";
+const SUPABASE_KEY =
+  "sb_publishable_DomJB-3gsWOZ2HBkYlSfAQ_59cvT9uM";
 
-  const ADMIN_ID =
-    "9d7fb4a8-28e6-4184-8a8b-ea40825b2573";
+const ADMIN_ID =
+  "9d7fb4a8-28e6-4184-8a8b-ea40825b2573";
 
-  const WHATSAPP =
-    "5491176310928";
-
-
-  const supabaseClient =
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
-  let products = [];
+let products = [];
 let sales = [];
 let currentReceipt = null;
-
 let currentUser = null;
-let currentRole = null;
-let currentBusinessId = null;
 
 
-  // =====================================================
-  // DINERO
-  // =====================================================
+/* =====================================================
+   DINERO
+===================================================== */
 
-  function money(value) {
+function money(value){
 
-    return new Intl.NumberFormat(
-      "es-AR",
-      {
-        style: "currency",
-        currency: "ARS"
-      }
-    ).format(Number(value) || 0);
-
-  }
-
-
-  // =====================================================
-  // ESCAPAR HTML
-  // =====================================================
-
-  function escapeHtml(value) {
-
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-
-  }
-
-
-  // =====================================================
-  // LOGIN
-  // =====================================================
-
-  async function login() {
-
-    const status =
-      document.getElementById("loginStatus");
-
-    status.textContent =
-      "🔄 Iniciando sesión...";
-
-    try {
-
-      const email =
-        document
-          .getElementById("email")
-          .value
-          .trim();
-
-      const password =
-        document
-          .getElementById("password")
-          .value;
-
-
-      if (!email || !password) {
-
-        status.textContent =
-          "❌ Ingresá email y contraseña.";
-
-        return;
-
-      }
-
-
-      const result =
-        await supabaseClient.auth
-          .signInWithPassword({
-            email,
-            password
-          });
-
-
-      if (result.error) {
-
-  status.textContent =
-    "❌ " +
-    result.error.message;
-
-  return;
+  return new Intl.NumberFormat(
+    "es-AR",
+    {
+      style:"currency",
+      currency:"ARS"
+    }
+  ).format(Number(value) || 0);
 
 }
 
-if (
-  !result.data ||
-  !result.data.user
-) {
 
-  status.textContent =
-    "❌ Supabase no devolvió el usuario.";
+/* =====================================================
+   ESCAPAR HTML
+===================================================== */
 
-  return;
+function escapeHtml(value){
 
-}
-
-currentUser =
-  result.data.user;
-
-const roleResult =
-  await supabaseClient
-    .rpc("my_business_role");
-
-if (roleResult.error) {
-
-  console.error(roleResult.error);
-
-  await supabaseClient.auth.signOut();
-
-  status.textContent =
-    "❌ No se pudo comprobar el rol del usuario.";
-
-  return;
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 
 }
 
-currentRole =
-  roleResult.data;
 
-if (
-  currentRole !== "owner" &&
-  currentRole !== "seller"
-) {
+/* =====================================================
+   LOGIN
+===================================================== */
 
-  await supabaseClient.auth.signOut();
+async function login(){
+
+  const status =
+    document.getElementById("loginStatus");
 
   status.textContent =
-    "❌ Esta cuenta no tiene permisos para este negocio.";
+    "🔄 Iniciando sesión...";
 
-  return;
+  try{
 
-}
+    const email =
+      document.getElementById("email")
+        .value
+        .trim();
 
-currentBusinessId =
-  "56b0bd35-4be0-4116-91fd-cbecd53219b6";
+    const password =
+      document.getElementById("password")
+        .value;
 
-
-      if (
-        result.data.user.id !== ADMIN_ID
-      ) {
-
-        await supabaseClient.auth.signOut();
-
-        status.textContent =
-          "❌ Esta cuenta no tiene permisos de administrador.";
-
-        return;
-
-      }
-
+    if(!email || !password){
 
       status.textContent =
-        "✅ Ingreso correcto.";
+        "❌ Ingresá email y contraseña.";
 
-
-      document
-        .getElementById("loginSection")
-        .classList
-        .add("hidden");
-
-
-      document
-        .getElementById("adminSection")
-        .classList
-        .remove("hidden");
-
-
-      await loadAll();
-
-    } catch (error) {
-
-      console.error(error);
-
-      status.textContent =
-        "❌ Error: " +
-        error.message;
-
+      return;
     }
 
-  }
+    const result =
+      await supabaseClient.auth
+        .signInWithPassword({
+          email,
+          password
+        });
 
+    if(result.error){
 
-  // =====================================================
-  // LOGOUT
-  // =====================================================
+      status.textContent =
+        "❌ " + result.error.message;
 
-  async function logout() {
+      return;
+    }
 
-    await supabaseClient.auth.signOut();
+    if(!result.data?.user){
 
-    document
-      .getElementById("adminSection")
-      .classList
-      .add("hidden");
+      status.textContent =
+        "❌ No se encontró el usuario.";
+
+      return;
+    }
+
+    currentUser =
+      result.data.user;
+
+    /*
+      IMPORTANTE:
+      Usamos el usuario que realmente inició sesión.
+      No dependemos de otro UUID para las operaciones.
+    */
+
+    if(currentUser.id !== ADMIN_ID){
+
+      await supabaseClient.auth.signOut();
+
+      status.textContent =
+        "❌ Esta cuenta no tiene permisos de administrador.";
+
+      return;
+    }
+
+    status.textContent =
+      "✅ Ingreso correcto.";
 
     document
       .getElementById("loginSection")
       .classList
-      .remove("hidden");
+      .add("hidden");
 
     document
-      .getElementById("loginStatus")
-      .textContent =
-      "Sesión cerrada.";
+      .getElementById("adminSection")
+      .classList
+      .remove("hidden");
+
+    await loadAll();
+
+  }catch(error){
+
+    console.error(error);
+
+    status.textContent =
+      "❌ Error: " + error.message;
 
   }
 
+}
 
-  // =====================================================
-  // CARGAR TODO
-  // =====================================================
 
-  async function loadAll() {
+/* =====================================================
+   LOGOUT
+===================================================== */
 
-    await loadProducts();
-    await loadSales();
+async function logout(){
+
+  await supabaseClient.auth.signOut();
+
+  currentUser = null;
+
+  document
+    .getElementById("adminSection")
+    .classList
+    .add("hidden");
+
+  document
+    .getElementById("loginSection")
+    .classList
+    .remove("hidden");
+
+  document
+    .getElementById("loginStatus")
+    .textContent =
+    "Sesión cerrada.";
+
+}
+
+
+/* =====================================================
+   SESIÓN
+===================================================== */
+
+async function getCurrentUser(){
+
+  const result =
+    await supabaseClient.auth.getUser();
+
+  if(result.error)
+    throw result.error;
+
+  const user =
+    result.data.user;
+
+  if(!user)
+    throw new Error(
+      "No hay una sesión iniciada."
+    );
+
+  if(user.id !== ADMIN_ID)
+    throw new Error(
+      "La cuenta no tiene permisos."
+    );
+
+  return user;
+
+}
+
+
+/* =====================================================
+   CARGAR TODO
+===================================================== */
+
+async function loadAll(){
+
+  await loadProducts();
+  await loadSales();
+
+}
+
+
+/* =====================================================
+   SUBIR FOTO
+===================================================== */
+
+async function uploadImage(file){
+
+  const extension =
+    file.name
+      .split(".")
+      .pop()
+      .toLowerCase();
+
+  const fileName =
+    ADMIN_ID +
+    "-" +
+    Date.now() +
+    "-" +
+    Math.random()
+      .toString(36)
+      .substring(2,8) +
+    "." +
+    extension;
+
+  const result =
+    await supabaseClient
+      .storage
+      .from("product-images")
+      .upload(
+        fileName,
+        file,
+        {
+          cacheControl:"3600",
+          upsert:false
+        }
+      );
+
+  if(result.error){
+
+    throw new Error(
+      "No se pudo subir la foto: " +
+      result.error.message
+    );
 
   }
 
+  const publicResult =
+    supabaseClient
+      .storage
+      .from("product-images")
+      .getPublicUrl(fileName);
 
-  // =====================================================
-  // SUBIR UNA FOTO
-  // =====================================================
+  return publicResult.data.publicUrl;
 
-  async function uploadImage(file) {
-
-    const extension =
-      file.name
-        .split(".")
-        .pop()
-        .toLowerCase();
-
-    const fileName =
-      ADMIN_ID +
-      "-" +
-      Date.now() +
-      "-" +
-      Math.random()
-        .toString(36)
-        .substring(2, 8) +
-      "." +
-      extension;
+}
 
 
-    const result =
-      await supabaseClient
-        .storage
-        .from("product-images")
-        .upload(
-          fileName,
-          file,
-          {
-            cacheControl: "3600",
-            upsert: false
-          }
+/* =====================================================
+   GANANCIA
+===================================================== */
+
+function updateProfitPreview(){
+
+  const cost =
+    Number(
+      document.getElementById("cost").value
+    ) || 0;
+
+  const price =
+    Number(
+      document.getElementById("price").value
+    ) || 0;
+
+  document
+    .getElementById("productProfitPreview")
+    .textContent =
+    "Ganancia por unidad: " +
+    money(price - cost);
+
+}
+
+document
+  .getElementById("cost")
+  .addEventListener(
+    "input",
+    updateProfitPreview
+  );
+
+document
+  .getElementById("price")
+  .addEventListener(
+    "input",
+    updateProfitPreview
+  );
+
+
+/* =====================================================
+   GARANTÍA
+===================================================== */
+
+document
+  .getElementById("warrantyDays")
+  .addEventListener(
+    "change",
+    function(){
+
+      const custom =
+        document.getElementById(
+          "customWarranty"
         );
 
-
-    if (result.error) {
-
-      throw new Error(
-        "No se pudo subir la foto: " +
-        result.error.message
-      );
+      if(this.value === "custom")
+        custom.classList.remove("hidden");
+      else
+        custom.classList.add("hidden");
 
     }
+  );
 
 
-    const publicResult =
-      supabaseClient
-        .storage
-        .from("product-images")
-        .getPublicUrl(fileName);
+/* =====================================================
+   GUARDAR PRODUCTO
+===================================================== */
 
+async function saveProduct(){
 
-    if (
-      !publicResult.data ||
-      !publicResult.data.publicUrl
-    ) {
+  const status =
+    document.getElementById(
+      "productStatus"
+    );
 
-      throw new Error(
-        "La foto se subió pero no se pudo obtener su URL."
-      );
+  try{
 
-    }
+    status.textContent =
+      "🔄 Guardando producto...";
 
+    const user =
+      await getCurrentUser();
 
-    return publicResult.data.publicUrl;
+    const name =
+      document.getElementById("name")
+        .value
+        .trim();
 
-  }
+    const category =
+      document.getElementById("category")
+        .value;
 
-
-  // =====================================================
-  // PREVISUALIZAR GANANCIA
-  // =====================================================
-
-  function updateProfitPreview() {
+    const condition =
+      document.getElementById(
+        "productCondition"
+      ).value;
 
     const cost =
       Number(
-        document
-          .getElementById("cost")
-          .value
-      ) || 0;
+        document.getElementById("cost").value
+      );
 
     const price =
       Number(
-        document
-          .getElementById("price")
-          .value
-      ) || 0;
+        document.getElementById("price").value
+      );
 
+    const stock =
+      Number(
+        document.getElementById("stock").value
+      );
 
-    const profit =
-      price - cost;
-
-
-    const element =
+    const description =
       document.getElementById(
-        "productProfitPreview"
-      );
+        "description"
+      ).value.trim();
 
-
-    element.textContent =
-      "Ganancia por unidad: " +
-      money(profit);
-
-  }
-
-
-  document
-    .getElementById("cost")
-    .addEventListener(
-      "input",
-      updateProfitPreview
-    );
-
-
-  document
-    .getElementById("price")
-    .addEventListener(
-      "input",
-      updateProfitPreview
-    );
-
-
-  // =====================================================
-  // GARANTÍA PERSONALIZADA
-  // =====================================================
-
-  document
-    .getElementById("warrantyDays")
-    .addEventListener(
-      "change",
-      function() {
-
-        const custom =
-          document.getElementById(
-            "customWarranty"
-          );
-
-        if (this.value === "custom") {
-
-          custom.classList.remove(
-            "hidden"
-          );
-
-        } else {
-
-          custom.classList.add(
-            "hidden"
-          );
-
-        }
-
-      }
-    );
-
-
-  // =====================================================
-  // GUARDAR PRODUCTO
-  // =====================================================
-
-  async function saveProduct() {
-
-    const status =
+    const isLiquidation =
       document.getElementById(
-        "productStatus"
+        "isLiquidation"
+      ).checked;
+
+    const files =
+      Array.from(
+        document.getElementById(
+          "images"
+        ).files
       );
 
-
-    try {
-
-      status.textContent =
-        "🔄 Preparando producto...";
-
-
-      const userResult =
-        await supabaseClient.auth.getUser();
-
-      const user =
-        userResult.data.user;
-
-
-      if (
-        !user ||
-        user.id !== ADMIN_ID
-      ) {
-
-        throw new Error(
-          "No estás autenticado como administrador."
-        );
-
-      }
-
-
-      const name =
-        document
-          .getElementById("name")
-          .value
-          .trim();
-
-      const category =
-        document
-          .getElementById("category")
-          .value;
-
-      const condition =
-        document
-          .getElementById("productCondition")
-          .value;
-
-      const cost =
-        Number(
-          document
-            .getElementById("cost")
-            .value
-        );
-
-      const price =
-        Number(
-          document
-            .getElementById("price")
-            .value
-        );
-
-      const stock =
-        Number(
-          document
-            .getElementById("stock")
-            .value
-        );
-
-      const description =
-        document
-          .getElementById("description")
-          .value
-          .trim();
-     
-      const isLiquidation =
-  document
-    .getElementById("isLiquidation")
-    .checked;
-      
-      const files =
-        Array.from(
-          document
-            .getElementById("images")
-            .files
-        );
-
-
-      if (!name) {
-
-        throw new Error(
-          "Ingresá el nombre del producto."
-        );
-
-      }
-
-
-      if (
-        !Number.isFinite(cost) ||
-        cost < 0
-      ) {
-
-        throw new Error(
-          "Ingresá un costo válido."
-        );
-
-      }
-
-
-      if (
-        !Number.isFinite(price) ||
-        price <= 0
-      ) {
-
-        throw new Error(
-          "Ingresá un precio de venta válido."
-        );
-
-      }
-
-
-      if (
-        price < cost
-      ) {
-
-        if (
-          !confirm(
-            "El precio de venta es menor que el costo. ¿Querés continuar?"
-          )
-        ) {
-
-          return;
-
-        }
-
-      }
-
-
-      if (
-        !Number.isInteger(stock) ||
-        stock < 0
-      ) {
-
-        throw new Error(
-          "El stock debe ser un número entero igual o mayor a 0."
-        );
-
-      }
-
-
-      if (!files.length) {
-
-        throw new Error(
-          "Seleccioná al menos una foto."
-        );
-
-      }
-
-
-      if (files.length > 10) {
-
-        throw new Error(
-          "Podés cargar hasta 10 fotos por producto."
-        );
-
-      }
-
-
-      status.textContent =
-        "💾 Guardando producto...";
-
-
-      const insertResult =
-        await supabaseClient
-          .from("products")
-          .insert({
-            user_id: user.id,
-            name,
-            category,
-            cost,
-            price,
-            stock,
-            image_url: null,
-            description,
-            product_condition: condition,
-            is_liquidation: isLiquidation
-          })
-          .select()
-          .single();
-
-
-      if (insertResult.error) {
-
-        throw new Error(
-          "No se pudo guardar el producto: " +
-          insertResult.error.message
-        );
-
-      }
-
-
-      const product =
-        insertResult.data;
-
-
-      let firstImageUrl = null;
-
-
-      for (
-        let i = 0;
-        i < files.length;
-        i++
-      ) {
-
-        status.textContent =
-          `📷 Subiendo foto ${i + 1} de ${files.length}...`;
-
-
-        const imageUrl =
-          await uploadImage(files[i]);
-
-
-        if (
-          i === 0
-        ) {
-
-          firstImageUrl =
-            imageUrl;
-
-        }
-
-
-        const imageResult =
-          await supabaseClient
-            .from("product_images")
-            .insert({
-              product_id: product.id,
-              user_id: user.id,
-              image_url: imageUrl,
-              sort_order: i
-            });
-
-
-        if (imageResult.error) {
-
-          throw new Error(
-            "La foto se subió pero no se pudo registrar: " +
-            imageResult.error.message
-          );
-
-        }
-
-      }
-
-
-      const updateMainImage =
-        await supabaseClient
-          .from("products")
-          .update({
-            image_url: firstImageUrl
-          })
-          .eq(
-            "id",
-            product.id
-          )
-          .eq(
-            "user_id",
-            user.id
-          );
-
-
-      if (updateMainImage.error) {
-
-        throw new Error(
-          "Producto guardado, pero no se pudo establecer la foto principal: " +
-          updateMainImage.error.message
-        );
-
-      }
-
-
-      status.textContent =
-        "✅ Producto guardado correctamente.";
-
-
-      document
-        .getElementById("name")
-        .value = "";
-
-      document
-        .getElementById("cost")
-        .value = "";
-
-      document
-        .getElementById("price")
-        .value = "";
-
-      document
-        .getElementById("stock")
-        .value = "";
-
-      document
-        .getElementById("description")
-        .value = "";
-
-      document
-        .getElementById("images")
-        .value = "";
-
-
-      await loadProducts();
-
-    } catch (error) {
-
-      console.error(
-        "Product save error:",
-        error
+    if(!name)
+      throw new Error(
+        "Ingresá el nombre del producto."
       );
 
-      status.textContent =
-        "❌ " +
-        error.message;
-
-    }
-
-  }
-
-
-  // =====================================================
-  // CARGAR PRODUCTOS
-  // =====================================================
-
-  async function loadProducts() {
-
-    const container =
-      document.getElementById(
-        "productsList"
+    if(!Number.isFinite(cost) || cost < 0)
+      throw new Error(
+        "Ingresá un costo válido."
       );
 
+    if(!Number.isFinite(price) || price <= 0)
+      throw new Error(
+        "Ingresá un precio válido."
+      );
 
-    container.textContent =
-      "🔄 Cargando productos...";
+    if(!Number.isInteger(stock) || stock < 0)
+      throw new Error(
+        "El stock debe ser un número entero."
+      );
 
+    if(price < cost){
 
-    try {
-
-      const result =
-        await supabaseClient
-          .from("products")
-          .select("*")
-          .eq(
-            "user_id",
-            ADMIN_ID
-          )
-          .order(
-            "created_at",
-            {
-              ascending: false
-            }
-          );
-
-
-      if (result.error) {
-
-        throw new Error(
-          "No se pudieron cargar los productos: " +
-          result.error.message
-        );
-
-      }
-
-
-      products =
-        result.data || [];
-
-
-      document
-        .getElementById("totalProducts")
-        ?.textContent;
-
-
-      updateSaleProducts();
-
-
-      if (!products.length) {
-
-        container.innerHTML =
-          "<p>No hay productos cargados todavía.</p>";
-
+      if(!confirm(
+        "El precio es menor que el costo. ¿Querés continuar?"
+      ))
         return;
 
-      }
+    }
 
+    /*
+      is_active = true:
+      el producto comienza visible/activo.
+    */
 
-      container.innerHTML =
-        products
-          .map(product => {
+    const insertResult =
+      await supabaseClient
+        .from("products")
+        .insert({
 
-            const profit =
-              Number(product.price || 0) -
-              Number(product.cost || 0);
+          user_id:user.id,
+          name,
+          category,
+          cost,
+          price,
+          stock,
+          image_url:null,
+          description,
+          product_condition:condition,
+          is_liquidation:isLiquidation,
+          is_active:true
 
+        })
+        .select()
+        .single();
 
-            return `
-              <div class="product">
-
-                ${
-                  product.image_url
-                    ? `
-                      <img
-                        src="${escapeHtml(product.image_url)}"
-                        alt="${escapeHtml(product.name)}"
-                      >
-                    `
-                    : ""
-                }
-
-                <div class="product-name">
-                  ${escapeHtml(product.name)}
-                </div>
-
-                <div>
-                  Categoría:
-                  ${escapeHtml(
-                    product.category || "Otros"
-                  )}
-                </div>
-
-                <div>
-                  Estado:
-                  ${escapeHtml(
-                    product.product_condition || "Nuevo"
-                  )}
-                </div>
-
-                <div>
-                  Costo:
-                  ${money(product.cost)}
-                </div>
-
-                <div class="price">
-                  Venta:
-                  ${money(product.price)}
-                </div>
-
-                <div class="profit">
-                  Ganancia:
-                  ${money(profit)}
-                </div>
-
-                <div class="stock">
-                  Stock:
-                  ${product.stock}
-                </div>
-
-                ${
-                  product.description
-                    ? `
-                      <p>
-                        ${escapeHtml(
-                          product.description
-                        )}
-                      </p>
-                    `
-                    : ""
-                }
-
-              </div>
-            `;
-
-          })
-          .join("");
-
-
-    } catch (error) {
-
-      console.error(
-        "Product loading error:",
-        error
+    if(insertResult.error)
+      throw new Error(
+        "No se pudo guardar el producto: " +
+        insertResult.error.message
       );
 
-      container.innerHTML =
-        `
-          <div class="error">
-            ❌ No se pudieron cargar los productos.
-            <br>
-            ${escapeHtml(error.message)}
-          </div>
-        `;
+    const product =
+      insertResult.data;
+
+    let firstImageUrl = null;
+
+    for(let i=0;i<files.length;i++){
+
+      status.textContent =
+        `📷 Subiendo foto ${i+1} de ${files.length}...`;
+
+      const imageUrl =
+        await uploadImage(files[i]);
+
+      if(i === 0)
+        firstImageUrl = imageUrl;
+
+      const imageResult =
+        await supabaseClient
+          .from("product_images")
+          .insert({
+
+            product_id:product.id,
+            user_id:user.id,
+            image_url:imageUrl,
+            sort_order:i
+
+          });
+
+      if(imageResult.error)
+        throw new Error(
+          "No se pudo registrar la foto: " +
+          imageResult.error.message
+        );
 
     }
 
-  }
-
-
-  // =====================================================
-  // PRODUCTOS PARA VENTA
-  // =====================================================
-
-  function updateSaleProducts() {
-
-    const select =
-      document.getElementById(
-        "saleProduct"
-      );
-
-
-    select.innerHTML =
-      `
-        <option value="">
-          Seleccioná un producto
-        </option>
-      `;
-
-
-    products
-      .filter(
-        product =>
-          Number(product.stock) > 0
-      )
-      .forEach(product => {
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-
-        option.value =
-          product.id;
-
-
-        option.textContent =
-          product.name +
-          " — " +
-          money(product.price) +
-          " — Stock: " +
-          product.stock;
-
-
-        select.appendChild(
-          option
-        );
-
-      });
-
-  }
-
-
-  // =====================================================
-  // REGISTRAR VENTA
-  // =====================================================
-
-  async function registerSale() {
-
-    const status =
-      document.getElementById(
-        "saleStatus"
-      );
-
-
-    try {
-
-      status.textContent =
-        "🔄 Registrando venta...";
-
-
-      const productId =
-        document
-          .getElementById("saleProduct")
-          .value;
-
-
-      const quantity =
-        Number(
-          document
-            .getElementById("saleQuantity")
-            .value
-        );
-
-
-      const customerName =
-        document
-          .getElementById("customerName")
-          .value
-          .trim();
-
-
-      const customerPhone =
-        document
-          .getElementById("customerPhone")
-          .value
-          .trim();
-
-
-      const paymentMethod =
-        document
-          .getElementById("paymentMethod")
-          .value;
-
-
-      let warrantyDays =
-        document
-          .getElementById("warrantyDays")
-          .value;
-
-
-      if (
-        warrantyDays === "custom"
-      ) {
-
-        warrantyDays =
-          Number(
-            document
-              .getElementById("customWarranty")
-              .value
-          );
-
-      } else {
-
-        warrantyDays =
-          Number(warrantyDays);
-
-      }
-
-
-      if (!productId) {
-
-        throw new Error(
-          "Seleccioná un producto."
-        );
-
-      }
-
-
-      if (
-        !Number.isInteger(quantity) ||
-        quantity <= 0
-      ) {
-
-        throw new Error(
-          "Ingresá una cantidad válida."
-        );
-
-      }
-
-
-      if (
-        !Number.isInteger(warrantyDays) ||
-        warrantyDays < 0
-      ) {
-
-        throw new Error(
-          "Ingresá una garantía válida."
-        );
-
-      }
-
-
-      const product =
-        products.find(
-          p =>
-            p.id === productId
-        );
-
-
-      if (!product) {
-
-        throw new Error(
-          "No se encontró el producto."
-        );
-
-      }
-
-
-      if (
-        quantity >
-        Number(product.stock)
-      ) {
-
-        throw new Error(
-          "No hay suficiente stock. Stock disponible: " +
-          product.stock
-        );
-
-      }
-
-
-      const userResult =
-        await supabaseClient.auth.getUser();
-
-
-      const user =
-        userResult.data.user;
-
-
-      if (
-        !user ||
-        user.id !== ADMIN_ID
-      ) {
-
-        throw new Error(
-          "No estás autenticado como administrador."
-        );
-
-      }
-
-
-      const unitPrice =
-        Number(product.price);
-
-      const unitCost =
-        Number(product.cost || 0);
-
-
-      let warrantyUntil = null;
-
-
-      if (
-        warrantyDays > 0
-      ) {
-
-        const date =
-          new Date();
-
-        date.setDate(
-          date.getDate() +
-          warrantyDays
-        );
-
-
-        warrantyUntil =
-          date
-            .toISOString()
-            .split("T")[0];
-
-      }
-
-
-      const saleResult =
-        await supabaseClient
-          .from("sales")
-          .insert({
-            user_id: user.id,
-            product_id: product.id,
-            quantity,
-            unit_price: unitPrice,
-            unit_cost: unitCost,
-            payment_method: paymentMethod,
-            customer_name:
-              customerName || null,
-            customer_phone:
-              customerPhone || null,
-            product_condition:
-              product.product_condition || "Nuevo",
-            warranty_days:
-              warrantyDays,
-            warranty_until:
-              warrantyUntil
-          })
-          .select(
-            `
-              *,
-              products (
-                name
-              )
-            `
-          )
-          .single();
-
-
-      if (saleResult.error) {
-
-        throw new Error(
-          "No se pudo registrar la venta: " +
-          saleResult.error.message
-        );
-
-      }
-
-
-      const sale =
-        saleResult.data;
-
-
-      const newStock =
-        Number(product.stock) -
-        quantity;
-
+    if(firstImageUrl){
 
       const updateResult =
         await supabaseClient
           .from("products")
           .update({
-            stock: newStock
+            image_url:firstImageUrl
           })
-          .eq(
-            "id",
-            product.id
-          )
-          .eq(
-            "user_id",
-            user.id
-          );
+          .eq("id",product.id)
+          .eq("user_id",user.id);
 
-
-      if (updateResult.error) {
-
+      if(updateResult.error)
         throw new Error(
-          "La venta se registró, pero no se pudo actualizar el stock: " +
+          "No se pudo guardar la foto principal: " +
           updateResult.error.message
         );
 
-      }
-
-
-      status.textContent =
-        "✅ Venta registrada correctamente.";
-
-
-      document
-        .getElementById("saleQuantity")
-        .value = "1";
-
-      document
-        .getElementById("customerName")
-        .value = "";
-
-      document
-        .getElementById("customerPhone")
-        .value = "";
-
-      document
-        .getElementById("warrantyDays")
-        .value = "0";
-
-      document
-        .getElementById("customWarranty")
-        .value = "";
-
-      document
-        .getElementById("customWarranty")
-        .classList
-        .add("hidden");
-
-
-      await loadProducts();
-      await loadSales();
-
-
-      showReceipt(sale);
-
-    } catch (error) {
-
-      console.error(
-        "Sale error:",
-        error
-      );
-
-      status.textContent =
-        "❌ " +
-        error.message;
-
     }
+
+    status.textContent =
+      "✅ Producto guardado correctamente.";
+
+    document.getElementById("name").value="";
+    document.getElementById("cost").value="";
+    document.getElementById("price").value="";
+    document.getElementById("stock").value="";
+    document.getElementById("description").value="";
+    document.getElementById("images").value="";
+    document.getElementById("isLiquidation").checked=false;
+
+    updateProfitPreview();
+
+    await loadProducts();
+
+  }catch(error){
+
+    console.error(error);
+
+    status.textContent =
+      "❌ " + error.message;
 
   }
 
-
-  // =====================================================
-  // CARGAR VENTAS
-  // =====================================================
-
-  async function loadSales() {
-
-    const container =
-      document.getElementById(
-        "salesList"
-      );
+}
 
 
-    container.textContent =
-      "🔄 Cargando ventas...";
+/* =====================================================
+   CARGAR PRODUCTOS
+===================================================== */
 
+async function loadProducts(){
 
-    try {
+  const container =
+    document.getElementById(
+      "productsList"
+    );
 
-      const result =
-        await supabaseClient
-          .from("sales")
-          .select(
-            `
-              id,
-              quantity,
-              unit_price,
-              unit_cost,
-              payment_method,
-              customer_name,
-              customer_phone,
-              product_condition,
-              warranty_days,
-              warranty_until,
-              receipt_number,
-              created_at,
-              product_id,
-              products (
-                name
-              )
-            `
-          )
-          .eq(
-            "user_id",
-            ADMIN_ID
-          )
-          .order(
-            "created_at",
-            {
-              ascending: false
-            }
-          );
+  container.textContent =
+    "🔄 Cargando productos...";
 
+  try{
 
-      if (result.error) {
+    const user =
+      await getCurrentUser();
 
-        throw new Error(
-          "No se pudieron cargar las ventas: " +
-          result.error.message
+    const result =
+      await supabaseClient
+        .from("products")
+        .select("*")
+        .eq(
+          "user_id",
+          user.id
+        )
+        .order(
+          "created_at",
+          {ascending:false}
         );
 
-      }
-
-
-      sales =
-        result.data || [];
-
-
-      let totalRevenue = 0;
-      let totalProfit = 0;
-      let totalUnits = 0;
-
-
-      let cashToday = 0;
-      let mpToday = 0;
-      let cardToday = 0;
-      let todayProfit = 0;
-
-
-      const today =
-        new Date()
-          .toISOString()
-          .slice(0, 10);
-
-
-      sales.forEach(
-        sale => {
-
-          const quantity =
-            Number(sale.quantity);
-
-          const price =
-            Number(sale.unit_price);
-
-          const cost =
-            Number(sale.unit_cost || 0);
-
-
-          const total =
-            price * quantity;
-
-          const profit =
-            (price - cost) *
-            quantity;
-
-
-          totalRevenue += total;
-          totalProfit += profit;
-          totalUnits += quantity;
-
-
-          const saleDate =
-            new Date(sale.created_at)
-              .toISOString()
-              .slice(0, 10);
-
-
-          if (
-            saleDate === today
-          ) {
-
-            todayProfit += profit;
-
-
-            if (
-              sale.payment_method ===
-              "Efectivo"
-            ) {
-
-              cashToday += total;
-
-            }
-
-            if (
-              sale.payment_method ===
-              "Mercado Pago"
-            ) {
-
-              mpToday += total;
-
-            }
-
-            if (
-              sale.payment_method ===
-              "Tarjeta"
-            ) {
-
-              cardToday += total;
-
-            }
-
-          }
-
-        }
+    if(result.error)
+      throw new Error(
+        result.error.message
       );
 
+    products =
+      result.data || [];
 
-      document
-        .getElementById("totalSales")
-        .textContent =
-        sales.length;
+    updateSaleProducts();
 
-
-      document
-        .getElementById("totalRevenue")
-        .textContent =
-        money(totalRevenue);
-
-
-      document
-        .getElementById("totalProfit")
-        .textContent =
-        money(totalProfit);
-
-
-      document
-        .getElementById("totalUnits")
-        .textContent =
-        totalUnits;
-
-
-      document
-        .getElementById("cashToday")
-        .textContent =
-        money(cashToday);
-
-
-      document
-        .getElementById("mpToday")
-        .textContent =
-        money(mpToday);
-
-
-      document
-        .getElementById("cardToday")
-        .textContent =
-        money(cardToday);
-
-
-      document
-        .getElementById("todayTotal")
-        .textContent =
-        money(
-          cashToday +
-          mpToday +
-          cardToday
-        );
-
-
-      document
-        .getElementById("todayProfit")
-        .textContent =
-        money(todayProfit);
-
-
-      if (!sales.length) {
-
-        container.innerHTML =
-          "<p>Todavía no registraste ventas.</p>";
-
-        return;
-
-      }
-
+    if(!products.length){
 
       container.innerHTML =
-        sales
-          .map(sale => {
-
-            const productName =
-              sale.products &&
-              sale.products.name
-                ? sale.products.name
-                : "Producto";
-
-
-            const total =
-              Number(
-                sale.unit_price
-              ) *
-              Number(
-                sale.quantity
-              );
-
-
-            const profit =
-              (
-                Number(sale.unit_price) -
-                Number(sale.unit_cost || 0)
-              ) *
-              Number(sale.quantity);
-
-
-            const date =
-              new Date(
-                sale.created_at
-              );
-
-
-            const receipt =
-              String(
-                sale.receipt_number || ""
-              )
-              .padStart(
-                6,
-                "0"
-              );
-
-
-            return `
-              <div class="sale-row">
-
-                <strong>
-                  🧾 Comprobante #${receipt}
-                </strong>
-
-                <br><br>
-
-                <strong>
-                  ${escapeHtml(productName)}
-                </strong>
-
-                <br>
-
-                Cantidad:
-                ${sale.quantity}
-
-                <br>
-
-                Precio:
-                ${money(sale.unit_price)}
-
-                <br>
-
-                Total:
-                <strong>
-                  ${money(total)}
-                </strong>
-
-                <br>
-
-                Ganancia:
-                <strong class="profit">
-                  ${money(profit)}
-                </strong>
-
-                <br>
-
-                Forma de pago:
-                ${escapeHtml(
-                  sale.payment_method || "Efectivo"
-                )}
-
-                <br>
-
-                Estado:
-                ${escapeHtml(
-                  sale.product_condition || "Nuevo"
-                )}
-
-                <br>
-
-                <small>
-                  ${date.toLocaleString("es-AR")}
-                </small>
-
-                <div class="sale-actions">
-
-                  <button
-                    class="btn-blue"
-                    onclick="openSaleReceipt('${sale.id}')"
-                  >
-                    🧾 Ver comprobante
-                  </button>
-
-                  <button
-                    class="btn-whatsapp"
-                    onclick="shareExistingSale('${sale.id}')"
-                  >
-                    📲 WhatsApp
-                  </button>
-
-                </div>
-
-              </div>
-            `;
-
-          })
-          .join("");
-
-
-    } catch (error) {
-
-      console.error(
-        "Sales loading error:",
-        error
-      );
-
-      container.innerHTML =
-        `
-          <div class="error">
-            ❌ No se pudieron cargar las ventas.
-            <br>
-            ${escapeHtml(error.message)}
-          </div>
-        `;
-
-    }
-
-  }
-
-
-  // =====================================================
-  // CREAR COMPROBANTE
-  // =====================================================
-
-  function showReceipt(sale) {
-
-    currentReceipt =
-      sale;
-
-
-    const productName =
-      sale.products &&
-      sale.products.name
-        ? sale.products.name
-        : "Producto";
-
-
-    const quantity =
-      Number(sale.quantity);
-
-
-    const total =
-      Number(sale.unit_price) *
-      quantity;
-
-
-    const date =
-      new Date(
-        sale.created_at
-      );
-
-
-    const receiptNumber =
-      String(
-        sale.receipt_number || ""
-      )
-      .padStart(
-        6,
-        "0"
-      );
-
-
-    let warrantyText =
-      "Sin garantía";
-
-
-    if (
-      Number(sale.warranty_days) > 0
-    ) {
-
-      warrantyText =
-        Number(sale.warranty_days) +
-        " días";
-
-
-    }
-
-
-    let warrantyUntil =
-      "";
-
-
-    if (
-      sale.warranty_until
-    ) {
-
-      const parts =
-        sale.warranty_until
-          .split("-");
-
-      warrantyUntil =
-        parts[2] +
-        "/" +
-        parts[1] +
-        "/" +
-        parts[0];
-
-    }
-
-
-    document
-      .getElementById("receiptContent")
-      .innerHTML = `
-
-        <div class="receipt-header">
-
-          <h1>
-            🧾 OFERTAS DIARIAS
-          </h1>
-
-          <h2>
-            COMPROBANTE DE VENTA
-          </h2>
-
-          <strong>
-            N.º ${receiptNumber}
-          </strong>
-
-        </div>
-
-        <div class="receipt-line">
-
-          <strong>Fecha:</strong>
-          ${date.toLocaleDateString("es-AR")}
-
-        </div>
-
-        <div class="receipt-line">
-
-          <strong>Hora:</strong>
-          ${date.toLocaleTimeString("es-AR")}
-
-        </div>
-
-        ${
-          sale.customer_name
-            ? `
-              <div class="receipt-line">
-                <strong>Cliente:</strong>
-                ${escapeHtml(
-                  sale.customer_name
-                )}
-              </div>
-            `
-            : ""
-        }
-
-        ${
-          sale.customer_phone
-            ? `
-              <div class="receipt-line">
-                <strong>Teléfono:</strong>
-                ${escapeHtml(
-                  sale.customer_phone
-                )}
-              </div>
-            `
-            : ""
-        }
-
-        <div class="receipt-line">
-
-          <strong>Producto:</strong>
-          ${escapeHtml(productName)}
-
-        </div>
-
-        <div class="receipt-line">
-
-          <strong>Estado:</strong>
-          ${escapeHtml(
-            sale.product_condition ||
-            "Nuevo"
-          )}
-
-        </div>
-
-        <div class="receipt-line">
-
-          <strong>Cantidad:</strong>
-          ${quantity}
-
-        </div>
-
-        <div class="receipt-line">
-
-          <strong>Precio:</strong>
-          ${money(sale.unit_price)}
-
-        </div>
-
-        <div class="receipt-line">
-
-          <strong>Forma de pago:</strong>
-          ${escapeHtml(
-            sale.payment_method ||
-            "Efectivo"
-          )}
-
-        </div>
-
-        <div class="receipt-line">
-
-          <strong>Garantía:</strong>
-          ${warrantyText}
-
-        </div>
-
-        ${
-          warrantyUntil
-            ? `
-              <div class="receipt-line">
-
-                <strong>
-                  Garantía hasta:
-                </strong>
-
-                ${warrantyUntil}
-
-              </div>
-            `
-            : ""
-        }
-
-        <div class="receipt-total">
-
-          TOTAL:
-          ${money(total)}
-
-        </div>
-
-        <hr>
-
-        <p style="text-align:center;">
-          Gracias por tu compra ❤️
-        </p>
-
-      `;
-
-
-    document
-      .getElementById("receiptModal")
-      .classList
-      .remove("hidden");
-
-  }
-
-
-  // =====================================================
-  // ABRIR COMPROBANTE EXISTENTE
-  // =====================================================
-
-  function openSaleReceipt(id) {
-
-    const sale =
-      sales.find(
-        item =>
-          item.id === id
-      );
-
-
-    if (!sale) {
-
-      alert(
-        "No se encontró la venta."
-      );
+        "<p>No hay productos cargados todavía.</p>";
 
       return;
+    }
+
+    container.innerHTML =
+      products.map(product => {
+
+        const profit =
+          Number(product.price || 0) -
+          Number(product.cost || 0);
+
+        const active =
+          product.is_active !== false;
+
+        return `
+
+          <div class="product ${
+            active ? "" : "inactive"
+          }">
+
+            ${
+              product.image_url
+                ? `
+                  <img
+                    src="${escapeHtml(
+                      product.image_url
+                    )}"
+                    alt="${escapeHtml(
+                      product.name
+                    )}"
+                  >
+                `
+                : ""
+            }
+
+            <div class="product-name">
+              ${escapeHtml(product.name)}
+            </div>
+
+            ${
+              active
+                ? `
+                  <span class="badge badge-active">
+                    👁️ Visible
+                  </span>
+                `
+                : `
+                  <span class="badge badge-hidden">
+                    🚫 Oculto
+                  </span>
+                `
+            }
+
+            ${
+              product.is_liquidation
+                ? `
+                  <span class="badge badge-liquidation">
+                    🔥 Liquidación
+                  </span>
+                `
+                : ""
+            }
+
+            <div>
+              Categoría:
+              ${escapeHtml(
+                product.category || "Otros"
+              )}
+            </div>
+
+            <div>
+              Estado:
+              ${escapeHtml(
+                product.product_condition ||
+                "Nuevo"
+              )}
+            </div>
+
+            <div>
+              Costo:
+              ${money(product.cost)}
+            </div>
+
+            <div class="price">
+              Venta:
+              ${money(product.price)}
+            </div>
+
+            <div class="profit">
+              Ganancia:
+              ${money(profit)}
+            </div>
+
+            <div class="stock">
+              Stock:
+              ${product.stock}
+            </div>
+
+            ${
+              product.description
+                ? `
+                  <p>
+                    ${escapeHtml(
+                      product.description
+                    )}
+                  </p>
+                `
+                : ""
+            }
+
+            <div class="product-actions">
+
+              <button
+                class="${
+                  active
+                    ? "btn-orange"
+                    : "btn-green"
+                }"
+                onclick="toggleProduct(
+                  '${product.id}',
+                  ${active}
+                )"
+              >
+                ${
+                  active
+                    ? "🚫 Ocultar"
+                    : "👁️ Mostrar"
+                }
+              </button>
+
+              <button
+                class="btn-red"
+                onclick="deleteProduct(
+                  '${product.id}'
+                )"
+              >
+                🗑️ Eliminar
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }).join("");
+
+  }catch(error){
+
+    console.error(error);
+
+    container.innerHTML = `
+      <div class="error">
+        ❌ No se pudieron cargar los productos.
+        <br>
+        ${escapeHtml(error.message)}
+      </div>
+    `;
+
+  }
+
+}
+
+
+/* =====================================================
+   OCULTAR / MOSTRAR PRODUCTO
+===================================================== */
+
+async function toggleProduct(
+  productId,
+  currentlyActive
+){
+
+  try{
+
+    const user =
+      await getCurrentUser();
+
+    const newValue =
+      !currentlyActive;
+
+    const result =
+      await supabaseClient
+        .from("products")
+        .update({
+          is_active:newValue
+        })
+        .eq("id",productId)
+        .eq("user_id",user.id);
+
+    if(result.error)
+      throw new Error(
+        "No se pudo cambiar el estado: " +
+        result.error.message
+      );
+
+    alert(
+      newValue
+        ? "✅ Producto mostrado."
+        : "🚫 Producto ocultado."
+    );
+
+    await loadProducts();
+
+  }catch(error){
+
+    console.error(error);
+
+    alert(
+      "❌ " + error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   ELIMINAR PRODUCTO
+===================================================== */
+
+async function deleteProduct(productId){
+
+  const product =
+    products.find(
+      p => p.id === productId
+    );
+
+  if(!product){
+
+    alert(
+      "No se encontró el producto."
+    );
+
+    return;
+  }
+
+  const confirmed =
+    confirm(
+      `¿Seguro que querés eliminar definitivamente "${product.name}"?\n\nEsta acción no se puede deshacer.`
+    );
+
+  if(!confirmed)
+    return;
+
+  try{
+
+    const user =
+      await getCurrentUser();
+
+    /*
+      Primero eliminamos las imágenes
+      registradas en product_images.
+    */
+
+    const imagesResult =
+      await supabaseClient
+        .from("product_images")
+        .delete()
+        .eq(
+          "product_id",
+          productId
+        )
+        .eq(
+          "user_id",
+          user.id
+        );
+
+    if(imagesResult.error){
+
+      console.warn(
+        "No se pudieron borrar registros de imágenes:",
+        imagesResult.error
+      );
 
     }
 
+    /*
+      Después eliminamos el producto.
+    */
+
+    const result =
+      await supabaseClient
+        .from("products")
+        .delete()
+        .eq("id",productId)
+        .eq("user_id",user.id);
+
+    if(result.error)
+      throw new Error(
+        "No se pudo eliminar el producto: " +
+        result.error.message
+      );
+
+    alert(
+      "🗑️ Producto eliminado correctamente."
+    );
+
+    await loadProducts();
+
+  }catch(error){
+
+    console.error(error);
+
+    alert(
+      "❌ " + error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   PRODUCTOS PARA VENTA
+===================================================== */
+
+function updateSaleProducts(){
+
+  const select =
+    document.getElementById(
+      "saleProduct"
+    );
+
+  select.innerHTML = `
+    <option value="">
+      Seleccioná un producto
+    </option>
+  `;
+
+  products
+    .filter(
+      product =>
+        product.is_active !== false &&
+        Number(product.stock) > 0
+    )
+    .forEach(product => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        product.id;
+
+      option.textContent =
+        product.name +
+        " — " +
+        money(product.price) +
+        " — Stock: " +
+        product.stock;
+
+      select.appendChild(option);
+
+    });
+
+}
+
+
+/* =====================================================
+   REGISTRAR VENTA
+===================================================== */
+
+async function registerSale(){
+
+  const status =
+    document.getElementById(
+      "saleStatus"
+    );
+
+  try{
+
+    status.textContent =
+      "🔄 Registrando venta...";
+
+    const user =
+      await getCurrentUser();
+
+    const productId =
+      document.getElementById(
+        "saleProduct"
+      ).value;
+
+    const quantity =
+      Number(
+        document.getElementById(
+          "saleQuantity"
+        ).value
+      );
+
+    const customerName =
+      document.getElementById(
+        "customerName"
+      ).value.trim();
+
+    const customerPhone =
+      document.getElementById(
+        "customerPhone"
+      ).value.trim();
+
+    const paymentMethod =
+      document.getElementById(
+        "paymentMethod"
+      ).value;
+
+    let warrantyDays =
+      document.getElementById(
+        "warrantyDays"
+      ).value;
+
+    if(warrantyDays === "custom"){
+
+      warrantyDays =
+        Number(
+          document.getElementById(
+            "customWarranty"
+          ).value
+        );
+
+    }else{
+
+      warrantyDays =
+        Number(warrantyDays);
+
+    }
+
+    if(!productId)
+      throw new Error(
+        "Seleccioná un producto."
+      );
+
+    if(
+      !Number.isInteger(quantity) ||
+      quantity <= 0
+    )
+      throw new Error(
+        "Ingresá una cantidad válida."
+      );
+
+    if(
+      !Number.isInteger(warrantyDays) ||
+      warrantyDays < 0
+    )
+      throw new Error(
+        "Ingresá una garantía válida."
+      );
+
+    const product =
+      products.find(
+        p => p.id === productId
+      );
+
+    if(!product)
+      throw new Error(
+        "No se encontró el producto."
+      );
+
+    if(product.is_active === false)
+      throw new Error(
+        "Ese producto está oculto."
+      );
+
+    if(
+      quantity >
+      Number(product.stock)
+    )
+      throw new Error(
+        "No hay suficiente stock. Disponible: " +
+        product.stock
+      );
+
+    const unitPrice =
+      Number(product.price);
+
+    const unitCost =
+      Number(product.cost || 0);
+
+    let warrantyUntil = null;
+
+    if(warrantyDays > 0){
+
+      const date =
+        new Date();
+
+      date.setDate(
+        date.getDate() +
+        warrantyDays
+      );
+
+      warrantyUntil =
+        date.toISOString()
+          .split("T")[0];
+
+    }
+
+    const saleResult =
+      await supabaseClient
+        .from("sales")
+        .insert({
+
+          user_id:user.id,
+          product_id:product.id,
+          quantity,
+          unit_price:unitPrice,
+          unit_cost:unitCost,
+          payment_method:paymentMethod,
+          customer_name:
+            customerName || null,
+          customer_phone:
+            customerPhone || null,
+          product_condition:
+            product.product_condition ||
+            "Nuevo",
+          warranty_days:
+            warrantyDays,
+          warranty_until:
+            warrantyUntil
+
+        })
+        .select(`
+          *,
+          products(name)
+        `)
+        .single();
+
+    if(saleResult.error)
+      throw new Error(
+        "No se pudo registrar la venta: " +
+        saleResult.error.message
+      );
+
+    const sale =
+      saleResult.data;
+
+    const newStock =
+      Number(product.stock) -
+      quantity;
+
+    const stockResult =
+      await supabaseClient
+        .from("products")
+        .update({
+          stock:newStock
+        })
+        .eq("id",product.id)
+        .eq("user_id",user.id);
+
+    if(stockResult.error)
+      throw new Error(
+        "La venta se registró pero no se pudo actualizar el stock: " +
+        stockResult.error.message
+      );
+
+    status.textContent =
+      "✅ Venta registrada correctamente.";
+
+    document.getElementById(
+      "saleQuantity"
+    ).value = "1";
+
+    document.getElementById(
+      "customerName"
+    ).value = "";
+
+    document.getElementById(
+      "customerPhone"
+    ).value = "";
+
+    document.getElementById(
+      "warrantyDays"
+    ).value = "0";
+
+    document.getElementById(
+      "customWarranty"
+    ).value = "";
+
+    document.getElementById(
+      "customWarranty"
+    ).classList.add("hidden");
+
+    await loadProducts();
+    await loadSales();
 
     showReceipt(sale);
 
-  }
+  }catch(error){
 
+    console.error(error);
 
-  // =====================================================
-  // CERRAR COMPROBANTE
-  // =====================================================
-
-  function closeReceipt() {
-
-    document
-      .getElementById("receiptModal")
-      .classList
-      .add("hidden");
+    status.textContent =
+      "❌ " + error.message;
 
   }
 
-
-  // =====================================================
-  // IMPRIMIR
-  // =====================================================
-
-  function printReceipt() {
-
-    window.print();
-
-  }
+}
 
 
-  // =====================================================
-  // WHATSAPP
-  // =====================================================
+/* =====================================================
+   CARGAR VENTAS
+===================================================== */
 
-  function buildWhatsAppMessage(sale) {
+async function loadSales(){
 
-    const productName =
-      sale.products &&
-      sale.products.name
-        ? sale.products.name
-        : "Producto";
-
-
-    const total =
-      Number(sale.unit_price) *
-      Number(sale.quantity);
-
-
-    const date =
-      new Date(
-        sale.created_at
-      );
-
-
-    const receiptNumber =
-      String(
-        sale.receipt_number || ""
-      )
-      .padStart(
-        6,
-        "0"
-      );
-
-
-    let warranty =
-      "Sin garantía";
-
-
-    if (
-      Number(sale.warranty_days) > 0
-    ) {
-
-      warranty =
-        sale.warranty_days +
-        " días";
-
-    }
-
-
-    let message =
-      "🧾 COMPROBANTE DE VENTA\n\n" +
-
-      "Ofertas Diarias\n" +
-
-      "Comprobante N.º " +
-      receiptNumber +
-      "\n\n" +
-
-      "📅 Fecha: " +
-      date.toLocaleDateString("es-AR") +
-      "\n" +
-
-      "🕐 Hora: " +
-      date.toLocaleTimeString("es-AR") +
-      "\n\n" +
-
-      "📦 Producto: " +
-      productName +
-      "\n" +
-
-      "🔢 Cantidad: " +
-      sale.quantity +
-      "\n" +
-
-      "🏷️ Estado: " +
-      (sale.product_condition || "Nuevo") +
-      "\n" +
-
-      "💰 Precio: " +
-      money(sale.unit_price) +
-      "\n" +
-
-      "💵 Total: " +
-      money(total) +
-      "\n" +
-
-      "💳 Forma de pago: " +
-      (sale.payment_method || "Efectivo") +
-      "\n" +
-
-      "🛡️ Garantía: " +
-      warranty;
-
-
-    if (
-      sale.warranty_until
-    ) {
-
-      const parts =
-        sale.warranty_until
-          .split("-");
-
-
-      message +=
-        "\n📅 Garantía hasta: " +
-        parts[2] +
-        "/" +
-        parts[1] +
-        "/" +
-        parts[0];
-
-    }
-
-
-    message +=
-      "\n\nGracias por tu compra ❤️";
-
-
-    return message;
-
-  }
-
-
-  function shareReceiptWhatsApp() {
-
-    if (!currentReceipt) {
-
-      return;
-
-    }
-
-
-    const message =
-      buildWhatsAppMessage(
-        currentReceipt
-      );
-
-
-    const url =
-      "https://wa.me/?text=" +
-      encodeURIComponent(message);
-
-
-    window.open(
-      url,
-      "_blank"
+  const container =
+    document.getElementById(
+      "salesList"
     );
 
-  }
+  container.textContent =
+    "🔄 Cargando ventas...";
 
+  try{
 
-  function shareExistingSale(id) {
+    const user =
+      await getCurrentUser();
 
-    const sale =
-      sales.find(
-        item =>
-          item.id === id
+    const result =
+      await supabaseClient
+        .from("sales")
+        .select(`
+          id,
+          quantity,
+          unit_price,
+          unit_cost,
+          payment_method,
+          customer_name,
+          customer_phone,
+          product_condition,
+          warranty_days,
+          warranty_until,
+          receipt_number,
+          created_at,
+          product_id,
+          products(name)
+        `)
+        .eq(
+          "user_id",
+          user.id
+        )
+        .order(
+          "created_at",
+          {ascending:false}
+        );
+
+    if(result.error)
+      throw new Error(
+        result.error.message
       );
 
+    sales =
+      result.data || [];
 
-    if (!sale) {
+    let totalRevenue=0;
+    let totalProfit=0;
+    let totalUnits=0;
 
-      alert(
-        "No se encontró la venta."
-      );
+    let cashToday=0;
+    let mpToday=0;
+    let cardToday=0;
+    let todayProfit=0;
 
-      return;
+    const today =
+      new Date()
+        .toISOString()
+        .slice(0,10);
 
-    }
+    sales.forEach(sale => {
 
+      const quantity =
+        Number(sale.quantity);
 
-    const message =
-      buildWhatsAppMessage(
-        sale
-      );
+      const price =
+        Number(sale.unit_price);
 
+      const cost =
+        Number(sale.unit_cost || 0);
 
-    const url =
-      "https://wa.me/?text=" +
-      encodeURIComponent(message);
+      const total =
+        price * quantity;
 
+      const profit =
+        (price-cost)*quantity;
 
-    window.open(
-      url,
-      "_blank"
-    );
+      totalRevenue += total;
+      totalProfit += profit;
+      totalUnits += quantity;
 
-  }
+      const saleDate =
+        new Date(sale.created_at)
+          .toISOString()
+          .slice(0,10);
 
+      if(saleDate === today){
 
-  // =====================================================
-  // COMPROBAR SESIÓN
-  // =====================================================
+        todayProfit += profit;
 
-  async function checkSession() {
+        if(
+          sale.payment_method ===
+          "Efectivo"
+        )
+          cashToday += total;
 
-    try {
+        if(
+          sale.payment_method ===
+          "Mercado Pago"
+        )
+          mpToday += total;
 
-      const result =
-        await supabaseClient.auth
-          .getUser();
-
-
-      const user =
-        result.data.user;
-
-
-      if (
-        user &&
-        user.id === ADMIN_ID
-      ) {
-
-        document
-          .getElementById("loginSection")
-          .classList
-          .add("hidden");
-
-
-        document
-          .getElementById("adminSection")
-          .classList
-          .remove("hidden");
-
-
-        await loadAll();
+        if(
+          sale.payment_method ===
+          "Tarjeta"
+        )
+          cardToday += total;
 
       }
 
-    } catch (error) {
+    });
 
-      console.error(
-        "Session check error:",
-        error
+    document.getElementById(
+      "totalSales"
+    ).textContent =
+      sales.length;
+
+    document.getElementById(
+      "totalRevenue"
+    ).textContent =
+      money(totalRevenue);
+
+    document.getElementById(
+      "totalProfit"
+    ).textContent =
+      money(totalProfit);
+
+    document.getElementById(
+      "totalUnits"
+    ).textContent =
+      totalUnits;
+
+    document.getElementById(
+      "cashToday"
+    ).textContent =
+      money(cashToday);
+
+    document.getElementById(
+      "mpToday"
+    ).textContent =
+      money(mpToday);
+
+    document.getElementById(
+      "cardToday"
+    ).textContent =
+      money(cardToday);
+
+    document.getElementById(
+      "todayTotal"
+    ).textContent =
+      money(
+        cashToday +
+        mpToday +
+        cardToday
       );
+
+    document.getElementById(
+      "todayProfit"
+    ).textContent =
+      money(todayProfit);
+
+    if(!sales.length){
+
+      container.innerHTML =
+        "<p>Todavía no registraste ventas.</p>";
+
+      return;
 
     }
 
+    container.innerHTML =
+      sales.map(sale => {
+
+        const productName =
+          sale.products?.name ||
+          "Producto";
+
+        const total =
+          Number(sale.unit_price) *
+          Number(sale.quantity);
+
+        const profit =
+          (
+            Number(sale.unit_price) -
+            Number(sale.unit_cost || 0)
+          ) *
+          Number(sale.quantity);
+
+        const date =
+          new Date(
+            sale.created_at
+          );
+
+        const receipt =
+          String(
+            sale.receipt_number || ""
+          ).padStart(6,"0");
+
+        return `
+
+          <div class="sale-row">
+
+            <strong>
+              🧾 Comprobante #${receipt}
+            </strong>
+
+            <br><br>
+
+            <strong>
+              ${escapeHtml(productName)}
+            </strong>
+
+            <br>
+
+            Cantidad:
+            ${sale.quantity}
+
+            <br>
+
+            Precio:
+            ${money(sale.unit_price)}
+
+            <br>
+
+            Total:
+            <strong>
+              ${money(total)}
+            </strong>
+
+            <br>
+
+            Ganancia:
+            <strong class="profit">
+              ${money(profit)}
+            </strong>
+
+            <br>
+
+            Forma de pago:
+            ${escapeHtml(
+              sale.payment_method ||
+              "Efectivo"
+            )}
+
+            <br>
+
+            Estado:
+            ${escapeHtml(
+              sale.product_condition ||
+              "Nuevo"
+            )}
+
+            <br>
+
+            <small>
+              ${date.toLocaleString("es-AR")}
+            </small>
+
+            <div class="sale-actions">
+
+              <button
+                class="btn-blue"
+                onclick="openSaleReceipt(
+                  '${sale.id}'
+                )"
+              >
+                🧾 Ver comprobante
+              </button>
+
+              <button
+                class="btn-whatsapp"
+                onclick="shareExistingSale(
+                  '${sale.id}'
+                )"
+              >
+                📲 WhatsApp
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }).join("");
+
+  }catch(error){
+
+    console.error(error);
+
+    container.innerHTML = `
+      <div class="error">
+        ❌ No se pudieron cargar las ventas.
+        <br>
+        ${escapeHtml(error.message)}
+      </div>
+    `;
+
   }
 
+}
 
-  // =====================================================
-  // INICIO
-  // =====================================================
 
-  checkSession();
+/* =====================================================
+   COMPROBANTE
+===================================================== */
+
+function showReceipt(sale){
+
+  currentReceipt =
+    sale;
+
+  const productName =
+    sale.products?.name ||
+    "Producto";
+
+  const quantity =
+    Number(sale.quantity);
+
+  const total =
+    Number(sale.unit_price) *
+    quantity;
+
+  const date =
+    new Date(
+      sale.created_at
+    );
+
+  const receiptNumber =
+    String(
+      sale.receipt_number || ""
+    ).padStart(6,"0");
+
+  let warrantyText =
+    "Sin garantía";
+
+  if(
+    Number(sale.warranty_days) > 0
+  ){
+
+    warrantyText =
+      Number(sale.warranty_days) +
+      " días";
+
+  }
+
+  let warrantyUntil="";
+
+  if(sale.warranty_until){
+
+    const parts =
+      sale.warranty_until
+        .split("-");
+
+    warrantyUntil =
+      parts[2] +
+      "/" +
+      parts[1] +
+      "/" +
+      parts[0];
+
+  }
+
+  document.getElementById(
+    "receiptContent"
+  ).innerHTML = `
+
+    <div class="receipt-header">
+
+      <h1>🧾 OFERTAS DIARIAS</h1>
+
+      <h2>COMPROBANTE DE VENTA</h2>
+
+      <strong>
+        N.º ${receiptNumber}
+      </strong>
+
+    </div>
+
+    <div class="receipt-line">
+      <strong>Fecha:</strong>
+      ${date.toLocaleDateString("es-AR")}
+    </div>
+
+    <div class="receipt-line">
+      <strong>Hora:</strong>
+      ${date.toLocaleTimeString("es-AR")}
+    </div>
+
+    ${
+      sale.customer_name
+        ? `
+          <div class="receipt-line">
+            <strong>Cliente:</strong>
+            ${escapeHtml(
+              sale.customer_name
+            )}
+          </div>
+        `
+        : ""
+    }
+
+    ${
+      sale.customer_phone
+        ? `
+          <div class="receipt-line">
+            <strong>Teléfono:</strong>
+            ${escapeHtml(
+              sale.customer_phone
+            )}
+          </div>
+        `
+        : ""
+    }
+
+    <div class="receipt-line">
+      <strong>Producto:</strong>
+      ${escapeHtml(productName)}
+    </div>
+
+    <div class="receipt-line">
+      <strong>Estado:</strong>
+      ${escapeHtml(
+        sale.product_condition ||
+        "Nuevo"
+      )}
+    </div>
+
+    <div class="receipt-line">
+      <strong>Cantidad:</strong>
+      ${quantity}
+    </div>
+
+    <div class="receipt-line">
+      <strong>Precio:</strong>
+      ${money(sale.unit_price)}
+    </div>
+
+    <div class="receipt-line">
+      <strong>Forma de pago:</strong>
+      ${escapeHtml(
+        sale.payment_method ||
+        "Efectivo"
+      )}
+    </div>
+
+    <div class="receipt-line">
+      <strong>Garantía:</strong>
+      ${warrantyText}
+    </div>
+
+    ${
+      warrantyUntil
+        ? `
+          <div class="receipt-line">
+            <strong>Garantía hasta:</strong>
+            ${warrantyUntil}
+          </div>
+        `
+        : ""
+    }
+
+    <div class="receipt-total">
+      TOTAL: ${money(total)}
+    </div>
+
+    <hr>
+
+    <p style="text-align:center;">
+      Gracias por tu compra ❤️
+    </p>
+
+  `;
+
+  document
+    .getElementById("receiptModal")
+    .classList
+    .remove("hidden");
+
+}
+
+
+/* =====================================================
+   ABRIR COMPROBANTE
+===================================================== */
+
+function openSaleReceipt(id){
+
+  const sale =
+    sales.find(
+      item => item.id === id
+    );
+
+  if(!sale){
+
+    alert(
+      "No se encontró la venta."
+    );
+
+    return;
+
+  }
+
+  showReceipt(sale);
+
+}
+
+
+/* =====================================================
+   CERRAR COMPROBANTE
+===================================================== */
+
+function closeReceipt(){
+
+  document
+    .getElementById("receiptModal")
+    .classList
+    .add("hidden");
+
+}
+
+
+/* =====================================================
+   IMPRIMIR
+===================================================== */
+
+function printReceipt(){
+
+  window.print();
+
+}
+
+
+/* =====================================================
+   WHATSAPP
+===================================================== */
+
+function buildWhatsAppMessage(sale){
+
+  const productName =
+    sale.products?.name ||
+    "Producto";
+
+  const total =
+    Number(sale.unit_price) *
+    Number(sale.quantity);
+
+  const date =
+    new Date(
+      sale.created_at
+    );
+
+  const receiptNumber =
+    String(
+      sale.receipt_number || ""
+    ).padStart(6,"0");
+
+  let warranty =
+    "Sin garantía";
+
+  if(
+    Number(sale.warranty_days) > 0
+  )
+    warranty =
+      sale.warranty_days +
+      " días";
+
+  let message =
+    "🧾 COMPROBANTE DE VENTA\n\n" +
+
+    "Ofertas Diarias\n" +
+
+    "Comprobante N.º " +
+    receiptNumber +
+    "\n\n" +
+
+    "📅 Fecha: " +
+    date.toLocaleDateString("es-AR") +
+    "\n" +
+
+    "🕐 Hora: " +
+    date.toLocaleTimeString("es-AR") +
+    "\n\n" +
+
+    "📦 Producto: " +
+    productName +
+    "\n" +
+
+    "🔢 Cantidad: " +
+    sale.quantity +
+    "\n" +
+
+    "🏷️ Estado: " +
+    (
+      sale.product_condition ||
+      "Nuevo"
+    ) +
+    "\n" +
+
+    "💰 Precio: " +
+    money(sale.unit_price) +
+    "\n" +
+
+    "💵 Total: " +
+    money(total) +
+    "\n" +
+
+    "💳 Forma de pago: " +
+    (
+      sale.payment_method ||
+      "Efectivo"
+    ) +
+    "\n" +
+
+    "🛡️ Garantía: " +
+    warranty;
+
+  if(sale.warranty_until){
+
+    const parts =
+      sale.warranty_until
+        .split("-");
+
+    message +=
+      "\n📅 Garantía hasta: " +
+      parts[2] +
+      "/" +
+      parts[1] +
+      "/" +
+      parts[0];
+
+  }
+
+  message +=
+    "\n\nGracias por tu compra ❤️";
+
+  return message;
+
+}
+
+
+function shareReceiptWhatsApp(){
+
+  if(!currentReceipt)
+    return;
+
+  const message =
+    buildWhatsAppMessage(
+      currentReceipt
+    );
+
+  const url =
+    "https://wa.me/?text=" +
+    encodeURIComponent(message);
+
+  window.open(
+    url,
+    "_blank"
+  );
+
+}
+
+
+function shareExistingSale(id){
+
+  const sale =
+    sales.find(
+      item => item.id === id
+    );
+
+  if(!sale){
+
+    alert(
+      "No se encontró la venta."
+    );
+
+    return;
+
+  }
+
+  const message =
+    buildWhatsAppMessage(
+      sale
+    );
+
+  const url =
+    "https://wa.me/?text=" +
+    encodeURIComponent(message);
+
+  window.open(
+    url,
+    "_blank"
+  );
+
+}
+
+
+/* =====================================================
+   COMPROBAR SESIÓN AL ABRIR
+===================================================== */
+
+async function checkSession(){
+
+  try{
+
+    const result =
+      await supabaseClient.auth
+        .getUser();
+
+    const user =
+      result.data.user;
+
+    if(
+      user &&
+      user.id === ADMIN_ID
+    ){
+
+      currentUser =
+        user;
+
+      document
+        .getElementById(
+          "loginSection"
+        )
+        .classList
+        .add("hidden");
+
+      document
+        .getElementById(
+          "adminSection"
+        )
+        .classList
+        .remove("hidden");
+
+      await loadAll();
+
+    }
+
+  }catch(error){
+
+    console.error(
+      "Session error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   INICIO
+===================================================== */
+
+checkSession();
 
 </script>
 
