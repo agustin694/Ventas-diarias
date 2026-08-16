@@ -342,6 +342,7 @@
 
 <div class="container">
 
+  <!-- LOGIN -->
   <section id="loginSection" class="card">
 
     <h2>🔐 Iniciar sesión</h2>
@@ -370,8 +371,10 @@
 
   </section>
 
+  <!-- ADMIN -->
   <main id="adminSection" class="hidden">
 
+    <!-- RESUMEN -->
     <div class="card">
 
       <h2>📈 Resumen general</h2>
@@ -402,6 +405,7 @@
 
     </div>
 
+    <!-- DINERO DE HOY -->
     <div class="card">
 
       <h2>💰 Dinero de hoy por forma de pago</h2>
@@ -437,6 +441,7 @@
 
     </div>
 
+    <!-- AGREGAR PRODUCTO -->
     <div class="card">
 
       <h2>➕ Agregar producto</h2>
@@ -468,7 +473,7 @@
         <option value="Solo detalle">📝 Solo detalle</option>
       </select>
 
-      <label class="liquidation-option">
+      <label>
         <input id="isLiquidation" type="checkbox">
         🔥 Producto en liquidación
       </label>
@@ -527,6 +532,7 @@
 
     </div>
 
+    <!-- REGISTRAR VENTA -->
     <div class="card">
 
       <h2>🧾 Registrar venta</h2>
@@ -598,6 +604,7 @@
 
     </div>
 
+    <!-- PRODUCTOS -->
     <div class="card">
 
       <h2>📦 Mis productos</h2>
@@ -608,6 +615,7 @@
 
     </div>
 
+    <!-- VENTAS -->
     <div class="card">
 
       <h2>🧾 Últimas ventas</h2>
@@ -630,6 +638,7 @@
 
 </div>
 
+<!-- MODAL EDITAR PRODUCTO -->
 <div id="editProductModal" class="modal hidden">
 
   <div class="modal-content">
@@ -699,6 +708,7 @@
 
 </div>
 
+<!-- COMPROBANTE -->
 <div
   id="receiptModal"
   class="hidden"
@@ -744,1867 +754,112 @@
 
 <script>
 
-const SUPABASE_URL =
-  "https://hovuypchngweflamnubr.supabase.co";
+  // =====================================================
+  // SUPABASE
+  // =====================================================
 
-const SUPABASE_KEY =
-  "sb_publishable_DomJB-3gsWOZ2HBkYlSfAQ_59cvT9uM";
+  const SUPABASE_URL =
+    "https://hovuypchngweflamnubr.supabase.co";
 
-const ADMIN_ID =
-  "9d7fb4a8-28e6-4184-8a8b-ea40825b2573";
+  const SUPABASE_KEY =
+    "sb_publishable_DomJB-3gsWOZ2HBkYlSfAQ_59cvT9uM";
 
-const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
+  const ADMIN_ID =
+    "9d7fb4a8-28e6-4184-8a8b-ea40825b2573";
 
-let products = [];
-let sales = [];
-let currentReceipt = null;
-
-function money(value) {
-  return new Intl.NumberFormat(
-    "es-AR",
-    {
-      style: "currency",
-      currency: "ARS"
-    }
-  ).format(Number(value) || 0);
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-async function login() {
-
-  const status =
-    document.getElementById("loginStatus");
-
-  status.textContent =
-    "🔄 Iniciando sesión...";
-
-  try {
-
-    const email =
-      document.getElementById("email").value.trim();
-
-    const password =
-      document.getElementById("password").value;
-
-    if (!email || !password) {
-      status.textContent =
-        "❌ Ingresá email y contraseña.";
-      return;
-    }
-
-    const result =
-      await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
-
-    if (result.error) {
-      status.textContent =
-        "❌ " + result.error.message;
-      return;
-    }
-
-    if (!result.data || !result.data.user) {
-      status.textContent =
-        "❌ Supabase no devolvió el usuario.";
-      return;
-    }
-
-    if (result.data.user.id !== ADMIN_ID) {
-
-      await supabaseClient.auth.signOut();
-
-      status.textContent =
-        "❌ Esta cuenta no tiene permisos de administrador.";
-
-      return;
-    }
-
-    status.textContent =
-      "✅ Ingreso correcto.";
-
-    document
-      .getElementById("loginSection")
-      .classList.add("hidden");
-
-    document
-      .getElementById("adminSection")
-      .classList.remove("hidden");
-
-    await loadAll();
-
-  } catch (error) {
-
-    console.error(error);
-
-    status.textContent =
-      "❌ Error: " + error.message;
-  }
-}
-
-async function logout() {
-
-  await supabaseClient.auth.signOut();
-
-  document
-    .getElementById("adminSection")
-    .classList.add("hidden");
-
-  document
-    .getElementById("loginSection")
-    .classList.remove("hidden");
-
-  document
-    .getElementById("loginStatus")
-    .textContent =
-    "Sesión cerrada.";
-}
-
-async function loadAll() {
-  await loadProducts();
-  await loadSales();
-}
-
-async function uploadImage(file) {
-
-  const extension =
-    file.name.split(".").pop().toLowerCase();
-
-  const fileName =
-    ADMIN_ID +
-    "-" +
-    Date.now() +
-    "-" +
-    Math.random()
-      .toString(36)
-      .substring(2, 8) +
-    "." +
-    extension;
-
-  const result =
-    await supabaseClient
-      .storage
-      .from("product-images")
-      .upload(
-        fileName,
-        file,
-        {
-          cacheControl: "3600",
-          upsert: false
-        }
-      );
-
-  if (result.error) {
-    throw new Error(
-      "No se pudo subir la foto: " +
-      result.error.message
+  const supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
     );
+
+  let products = [];
+  let sales = [];
+  let currentReceipt = null;
+
+  // =====================================================
+  // DINERO
+  // =====================================================
+
+  function money(value) {
+    return new Intl.NumberFormat(
+      "es-AR",
+      {
+        style: "currency",
+        currency: "ARS"
+      }
+    ).format(Number(value) || 0);
   }
 
-  const publicResult =
-    supabaseClient
-      .storage
-      .from("product-images")
-      .getPublicUrl(fileName);
+  // =====================================================
+  // ESCAPAR HTML
+  // =====================================================
 
-  return publicResult.data.publicUrl;
-}
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
 
-function updateProfitPreview() {
+  // =====================================================
+  // LOGIN
+  // =====================================================
 
-  const cost =
-    Number(document.getElementById("cost").value) || 0;
+  async function login() {
 
-  const price =
-    Number(document.getElementById("price").value) || 0;
-
-  document.getElementById(
-    "productProfitPreview"
-  ).textContent =
-    "Ganancia por unidad: " +
-    money(price - cost);
-}
-
-document
-  .getElementById("cost")
-  .addEventListener("input", updateProfitPreview);
-
-document
-  .getElementById("price")
-  .addEventListener("input", updateProfitPreview);
-
-function updateEditProfitPreview() {
-
-  const cost =
-    Number(document.getElementById("editCost").value) || 0;
-
-  const price =
-    Number(document.getElementById("editPrice").value) || 0;
-
-  document.getElementById(
-    "editProfitPreview"
-  ).textContent =
-    "Ganancia por unidad: " +
-    money(price - cost);
-}
-
-document
-  .getElementById("editCost")
-  .addEventListener(
-    "input",
-    updateEditProfitPreview
-  );
-
-document
-  .getElementById("editPrice")
-  .addEventListener(
-    "input",
-    updateEditProfitPreview
-  );
-
-document
-  .getElementById("warrantyDays")
-  .addEventListener("change", function() {
-
-    const custom =
-      document.getElementById("customWarranty");
-
-    if (this.value === "custom") {
-      custom.classList.remove("hidden");
-    } else {
-      custom.classList.add("hidden");
-    }
-  });
-
-async function saveProduct() {
-
-  const status =
-    document.getElementById("productStatus");
-
-  try {
+    const status =
+      document.getElementById("loginStatus");
 
     status.textContent =
-      "🔄 Preparando producto...";
+      "🔄 Iniciando sesión...";
 
-    const userResult =
-      await supabaseClient.auth.getUser();
+    try {
 
-    if (userResult.error) {
-      throw new Error(
-        userResult.error.message
-      );
-    }
+      const email =
+        document.getElementById("email").value.trim();
 
-    const user =
-      userResult.data.user;
+      const password =
+        document.getElementById("password").value;
 
-    if (!user || user.id !== ADMIN_ID) {
-      throw new Error(
-        "No estás autenticado como administrador."
-      );
-    }
-
-    const name =
-      document.getElementById("name").value.trim();
-
-    const category =
-      document.getElementById("category").value;
-
-    const condition =
-      document.getElementById("productCondition").value;
-
-    const cost =
-      Number(document.getElementById("cost").value);
-
-    const price =
-      Number(document.getElementById("price").value);
-
-    const stock =
-      Number(document.getElementById("stock").value);
-
-    const description =
-      document
-        .getElementById("description")
-        .value
-        .trim();
-
-    const isLiquidation =
-      document
-        .getElementById("isLiquidation")
-        .checked;
-
-    const files =
-      Array.from(
-        document.getElementById("images").files
-      );
-
-    if (!name) {
-      throw new Error(
-        "Ingresá el nombre del producto."
-      );
-    }
-
-    if (!Number.isFinite(cost) || cost < 0) {
-      throw new Error(
-        "Ingresá un costo válido."
-      );
-    }
-
-    if (!Number.isFinite(price) || price <= 0) {
-      throw new Error(
-        "Ingresá un precio de venta válido."
-      );
-    }
-
-    if (!Number.isInteger(stock) || stock < 0) {
-      throw new Error(
-        "El stock debe ser un número entero igual o mayor a 0."
-      );
-    }
-
-    if (!files.length) {
-      throw new Error(
-        "Seleccioná al menos una foto."
-      );
-    }
-
-    if (files.length > 10) {
-      throw new Error(
-        "Podés cargar hasta 10 fotos por producto."
-      );
-    }
-
-    if (price < cost) {
-
-      if (
-        !confirm(
-          "El precio de venta es menor que el costo. ¿Querés continuar?"
-        )
-      ) {
+      if (!email || !password) {
+        status.textContent =
+          "❌ Ingresá email y contraseña.";
         return;
       }
-    }
 
-    status.textContent =
-      "💾 Guardando producto...";
+      const result =
+        await supabaseClient.auth.signInWithPassword({
+          email,
+          password
+        });
 
-    const insertResult =
-      await supabaseClient
-        .from("products")
-        .insert({
-          user_id: user.id,
-          name,
-          category,
-          cost,
-          price,
-          stock,
-          image_url: null,
-          description,
-          product_condition: condition,
-          is_liquidation: isLiquidation,
-          is_active: true
-        })
-        .select()
-        .single();
+      if (result.error) {
+        status.textContent =
+          "❌ " + result.error.message;
+        return;
+      }
 
-    if (insertResult.error) {
-      throw new Error(
-        "No se pudo guardar el producto: " +
-        insertResult.error.message
-      );
-    }
+      if (!result.data || !result.data.user) {
+        status.textContent =
+          "❌ Supabase no devolvió el usuario.";
+        return;
+      }
 
-    const product =
-      insertResult.data;
+      if (result.data.user.id !== ADMIN_ID) {
 
-    let firstImageUrl = null;
+        await supabaseClient.auth.signOut();
 
-    for (
-      let i = 0;
-      i < files.length;
-      i++
-    ) {
+        status.textContent =
+          "❌ Esta cuenta no tiene permisos de administrador.";
+
+        return;
+      }
 
       status.textContent =
-        `📷 Subiendo foto ${i + 1} de ${files.length}...`;
-
-      const imageUrl =
-        await uploadImage(files[i]);
-
-      if (i === 0) {
-        firstImageUrl = imageUrl;
-      }
-
-      const imageResult =
-        await supabaseClient
-          .from("product_images")
-          .insert({
-            product_id: product.id,
-            user_id: user.id,
-            image_url: imageUrl,
-            sort_order: i
-          });
-
-      if (imageResult.error) {
-        throw new Error(
-          "La foto se subió pero no se pudo registrar: " +
-          imageResult.error.message
-        );
-      }
-    }
-
-    const updateMainImage =
-      await supabaseClient
-        .from("products")
-        .update({
-          image_url: firstImageUrl
-        })
-        .eq("id", product.id)
-        .eq("user_id", user.id);
-
-    if (updateMainImage.error) {
-      throw new Error(
-        "Producto guardado, pero no se pudo establecer la foto principal: " +
-        updateMainImage.error.message
-      );
-    }
-
-    status.textContent =
-      "✅ Producto guardado correctamente.";
-
-    document.getElementById("name").value = "";
-    document.getElementById("cost").value = "";
-    document.getElementById("price").value = "";
-    document.getElementById("stock").value = "";
-    document.getElementById("description").value = "";
-    document.getElementById("images").value = "";
-    document.getElementById("isLiquidation").checked = false;
-
-    updateProfitPreview();
-
-    await loadProducts();
-
-  } catch (error) {
-
-    console.error(error);
-
-    status.textContent =
-      "❌ " + error.message;
-  }
-}
-
-async function loadProducts() {
-
-  const container =
-    document.getElementById("productsList");
-
-  container.textContent =
-    "🔄 Cargando productos...";
-
-  try {
-
-    const result =
-      await supabaseClient
-        .from("products")
-        .select("*")
-        .eq("user_id", ADMIN_ID)
-        .order(
-          "created_at",
-          {
-            ascending: false
-          }
-        );
-
-    if (result.error) {
-      throw new Error(
-        "No se pudieron cargar los productos: " +
-        result.error.message
-      );
-    }
-
-    products =
-      result.data || [];
-
-    updateSaleProducts();
-
-    if (!products.length) {
-
-      container.innerHTML =
-        "<p>No hay productos cargados todavía.</p>";
-
-      return;
-    }
-
-    container.innerHTML =
-      products.map(product => {
-
-        const profit =
-          Number(product.price || 0) -
-          Number(product.cost || 0);
-
-        const active =
-          product.is_active !== false;
-
-        return `
-          <div class="product ${active ? "" : "inactive"}">
-
-            ${
-              product.image_url
-                ? `
-                  <img
-                    src="${escapeHtml(product.image_url)}"
-                    alt="${escapeHtml(product.name)}"
-                  >
-                `
-                : ""
-            }
-
-            <div class="product-name">
-              ${escapeHtml(product.name)}
-            </div>
-
-            ${
-              active
-                ? ""
-                : `
-                  <div class="inactive-label">
-                    👁️ Producto oculto
-                  </div>
-                `
-            }
-
-            ${
-              product.is_liquidation
-                ? `
-                  <div class="liquidation">
-                    🔥 LIQUIDACIÓN
-                  </div>
-                `
-                : ""
-            }
-
-            <div>
-              Categoría:
-              ${escapeHtml(product.category || "Otros")}
-            </div>
-
-            <div>
-              Estado:
-              ${escapeHtml(
-                product.product_condition || "Nuevo"
-              )}
-            </div>
-
-            <div>
-              Costo:
-              ${money(product.cost)}
-            </div>
-
-            <div class="price">
-              Venta:
-              ${money(product.price)}
-            </div>
-
-            <div class="profit">
-              Ganancia:
-              ${money(profit)}
-            </div>
-
-            <div class="stock">
-              Stock:
-              ${product.stock}
-            </div>
-
-            ${
-              product.description
-                ? `
-                  <p>
-                    ${escapeHtml(product.description)}
-                  </p>
-                `
-                : ""
-            }
-
-            <div class="product-actions">
-
-              <button
-                class="btn-blue"
-                onclick="openEditProduct('${product.id}')"
-              >
-                ✏️ Modificar
-              </button>
-
-              <button
-                class="${active ? "btn-orange" : "btn-green"}"
-                onclick="toggleProduct('${product.id}', ${active})"
-              >
-                ${active ? "👁️ Ocultar" : "👁️ Mostrar"}
-              </button>
-
-              <button
-                class="btn-red"
-                onclick="deleteProduct('${product.id}')"
-              >
-                🗑️ Eliminar
-              </button>
-
-            </div>
-
-          </div>
-        `;
-
-      }).join("");
-
-  } catch (error) {
-
-    console.error(error);
-
-    container.innerHTML =
-      `
-        <div class="error">
-          ❌ No se pudieron cargar los productos.
-          <br>
-          ${escapeHtml(error.message)}
-        </div>
-      `;
-  }
-}
-
-function openEditProduct(id) {
-
-  const product =
-    products.find(
-      p => p.id === id
-    );
-
-  if (!product) {
-    alert("No se encontró el producto.");
-    return;
-  }
-
-  document.getElementById("editProductId").value =
-    product.id;
-
-  document.getElementById("editName").value =
-    product.name || "";
-
-  document.getElementById("editCategory").value =
-    product.category || "Otros";
-
-  document.getElementById("editCondition").value =
-    product.product_condition || "Nuevo";
-
-  document.getElementById("editLiquidation").checked =
-    product.is_liquidation === true;
-
-  document.getElementById("editCost").value =
-    product.cost ?? 0;
-
-  document.getElementById("editPrice").value =
-    product.price ?? 0;
-
-  document.getElementById("editStock").value =
-    product.stock ?? 0;
-
-  document.getElementById("editDescription").value =
-    product.description || "";
-
-  updateEditProfitPreview();
-
-  document.getElementById("editStatus").textContent = "";
-
-  document
-    .getElementById("editProductModal")
-    .classList
-    .remove("hidden");
-}
-
-function closeEditProduct() {
-
-  document
-    .getElementById("editProductModal")
-    .classList
-    .add("hidden");
-}
-
-async function updateProduct() {
-
-  const status =
-    document.getElementById("editStatus");
-
-  try {
-
-    status.textContent =
-      "🔄 Guardando cambios...";
-
-    const userResult =
-      await supabaseClient.auth.getUser();
-
-    if (userResult.error) {
-      throw new Error(
-        userResult.error.message
-      );
-    }
-
-    const user =
-      userResult.data.user;
-
-    if (!user || user.id !== ADMIN_ID) {
-      throw new Error(
-        "No estás autenticado como administrador."
-      );
-    }
-
-    const id =
-      document.getElementById("editProductId").value;
-
-    const name =
-      document.getElementById("editName").value.trim();
-
-    const category =
-      document.getElementById("editCategory").value;
-
-    const condition =
-      document.getElementById("editCondition").value;
-
-    const cost =
-      Number(document.getElementById("editCost").value);
-
-    const price =
-      Number(document.getElementById("editPrice").value);
-
-    const stock =
-      Number(document.getElementById("editStock").value);
-
-    const description =
-      document
-        .getElementById("editDescription")
-        .value
-        .trim();
-
-    const isLiquidation =
-      document
-        .getElementById("editLiquidation")
-        .checked;
-
-    if (!id) {
-      throw new Error(
-        "No se encontró el producto."
-      );
-    }
-
-    if (!name) {
-      throw new Error(
-        "Ingresá un nombre."
-      );
-    }
-
-    if (!Number.isFinite(cost) || cost < 0) {
-      throw new Error(
-        "Ingresá un costo válido."
-      );
-    }
-
-    if (!Number.isFinite(price) || price <= 0) {
-      throw new Error(
-        "Ingresá un precio válido."
-      );
-    }
-
-    if (!Number.isInteger(stock) || stock < 0) {
-      throw new Error(
-        "El stock debe ser un número entero mayor o igual a 0."
-      );
-    }
-
-    const result =
-      await supabaseClient
-        .from("products")
-        .update({
-          name,
-          category,
-          product_condition: condition,
-          cost,
-          price,
-          stock,
-          description,
-          is_liquidation: isLiquidation
-        })
-        .eq("id", id)
-        .eq("user_id", user.id)
-        .select()
-        .single();
-
-    if (result.error) {
-      throw new Error(
-        "No se pudo modificar el producto: " +
-        result.error.message
-      );
-    }
-
-    if (!result.data) {
-      throw new Error(
-        "No se modificó ningún producto."
-      );
-    }
-
-    status.textContent =
-      "✅ Producto modificado correctamente.";
-
-    await loadProducts();
-
-    setTimeout(() => {
-      closeEditProduct();
-    }, 500);
-
-  } catch (error) {
-
-    console.error(error);
-
-    status.textContent =
-      "❌ " + error.message;
-  }
-}
-
-/* =====================================================
-   OCULTAR / MOSTRAR PRODUCTO
-   ===================================================== */
-
-async function toggleProduct(id, currentlyActive) {
-
-  const action =
-    currentlyActive
-      ? "ocultar"
-      : "mostrar";
-
-  const confirmed =
-    confirm(
-      `¿Querés ${action} este producto?`
-    );
-
-  if (!confirmed) {
-    return;
-  }
-
-  try {
-
-    const userResult =
-      await supabaseClient.auth.getUser();
-
-    if (userResult.error) {
-      throw new Error(
-        "No se pudo comprobar la sesión: " +
-        userResult.error.message
-      );
-    }
-
-    const user =
-      userResult.data.user;
-
-    if (!user) {
-      throw new Error(
-        "No hay una sesión iniciada."
-      );
-    }
-
-    if (user.id !== ADMIN_ID) {
-      throw new Error(
-        "Esta cuenta no tiene permisos de administrador."
-      );
-    }
-
-    const result =
-      await supabaseClient
-        .from("products")
-        .update({
-          is_active: !currentlyActive
-        })
-        .eq("id", id)
-        .eq("user_id", user.id)
-        .select()
-        .single();
-
-    if (result.error) {
-
-      console.error(
-        "ERROR AL OCULTAR/MOSTRAR:",
-        result.error
-      );
-
-      throw new Error(
-        "Supabase rechazó el cambio: " +
-        result.error.message
-      );
-    }
-
-    if (!result.data) {
-      throw new Error(
-        "No se modificó ningún producto. " +
-        "La política de seguridad puede estar bloqueando la actualización."
-      );
-    }
-
-    alert(
-      currentlyActive
-        ? "✅ Producto ocultado."
-        : "✅ Producto mostrado."
-    );
-
-    await loadProducts();
-
-  } catch (error) {
-
-    console.error(
-      "ERROR toggleProduct:",
-      error
-    );
-
-    alert(
-      "❌ " + error.message
-    );
-  }
-}
-
-async function deleteProduct(id) {
-
-  const product =
-    products.find(
-      p => p.id === id
-    );
-
-  if (!product) {
-    alert("No se encontró el producto.");
-    return;
-  }
-
-  const confirmed =
-    confirm(
-      `¿Seguro que querés eliminar "${product.name}"?\n\nEsta acción es permanente.`
-    );
-
-  if (!confirmed) {
-    return;
-  }
-
-  try {
-
-    const userResult =
-      await supabaseClient.auth.getUser();
-
-    if (userResult.error) {
-      throw new Error(
-        userResult.error.message
-      );
-    }
-
-    const user =
-      userResult.data.user;
-
-    if (!user || user.id !== ADMIN_ID) {
-      throw new Error(
-        "No estás autenticado."
-      );
-    }
-
-    const result =
-      await supabaseClient
-        .from("products")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", user.id);
-
-    if (result.error) {
-      throw new Error(
-        "No se pudo eliminar el producto: " +
-        result.error.message
-      );
-    }
-
-    alert(
-      "✅ Producto eliminado."
-    );
-
-    await loadProducts();
-
-  } catch (error) {
-
-    console.error(error);
-
-    alert(
-      "❌ " + error.message
-    );
-  }
-}
-
-function updateSaleProducts() {
-
-  const select =
-    document.getElementById("saleProduct");
-
-  select.innerHTML =
-    `
-      <option value="">
-        Seleccioná un producto
-      </option>
-    `;
-
-  products
-    .filter(
-      product =>
-        product.is_active !== false &&
-        Number(product.stock) > 0
-    )
-    .forEach(product => {
-
-      const option =
-        document.createElement("option");
-
-      option.value =
-        product.id;
-
-      option.textContent =
-        product.name +
-        " — " +
-        money(product.price) +
-        " — Stock: " +
-        product.stock;
-
-      select.appendChild(option);
-    });
-}
-
-async function registerSale() {
-
-  const status =
-    document.getElementById("saleStatus");
-
-  try {
-
-    status.textContent =
-      "🔄 Registrando venta...";
-
-    const productId =
-      document.getElementById("saleProduct").value;
-
-    const quantity =
-      Number(
-        document.getElementById("saleQuantity").value
-      );
-
-    const customerName =
-      document
-        .getElementById("customerName")
-        .value
-        .trim();
-
-    const customerPhone =
-      document
-        .getElementById("customerPhone")
-        .value
-        .trim();
-
-    const paymentMethod =
-      document.getElementById("paymentMethod").value;
-
-    let warrantyDays =
-      document.getElementById("warrantyDays").value;
-
-    if (warrantyDays === "custom") {
-
-      warrantyDays =
-        Number(
-          document.getElementById("customWarranty").value
-        );
-
-    } else {
-
-      warrantyDays =
-        Number(warrantyDays);
-    }
-
-    if (!productId) {
-      throw new Error(
-        "Seleccioná un producto."
-      );
-    }
-
-    if (
-      !Number.isInteger(quantity) ||
-      quantity <= 0
-    ) {
-      throw new Error(
-        "Ingresá una cantidad válida."
-      );
-    }
-
-    if (
-      !Number.isInteger(warrantyDays) ||
-      warrantyDays < 0
-    ) {
-      throw new Error(
-        "Ingresá una garantía válida."
-      );
-    }
-
-    const product =
-      products.find(
-        p => p.id === productId
-      );
-
-    if (!product) {
-      throw new Error(
-        "No se encontró el producto."
-      );
-    }
-
-    if (product.is_active === false) {
-      throw new Error(
-        "Este producto está oculto."
-      );
-    }
-
-    if (
-      quantity >
-      Number(product.stock)
-    ) {
-      throw new Error(
-        "No hay suficiente stock. Stock disponible: " +
-        product.stock
-      );
-    }
-
-    const userResult =
-      await supabaseClient.auth.getUser();
-
-    if (userResult.error) {
-      throw new Error(
-        userResult.error.message
-      );
-    }
-
-    const user =
-      userResult.data.user;
-
-    if (!user || user.id !== ADMIN_ID) {
-      throw new Error(
-        "No estás autenticado como administrador."
-      );
-    }
-
-    const unitPrice =
-      Number(product.price);
-
-    const unitCost =
-      Number(product.cost || 0);
-
-    let warrantyUntil = null;
-
-    if (warrantyDays > 0) {
-
-      const date =
-        new Date();
-
-      date.setDate(
-        date.getDate() + warrantyDays
-      );
-
-      warrantyUntil =
-        date.toISOString().split("T")[0];
-    }
-
-    const saleResult =
-      await supabaseClient
-        .from("sales")
-        .insert({
-          user_id: user.id,
-          product_id: product.id,
-          quantity,
-          unit_price: unitPrice,
-          unit_cost: unitCost,
-          payment_method: paymentMethod,
-          customer_name:
-            customerName || null,
-          customer_phone:
-            customerPhone || null,
-          product_condition:
-            product.product_condition || "Nuevo",
-          warranty_days:
-            warrantyDays,
-          warranty_until:
-            warrantyUntil
-        })
-        .select(`
-          *,
-          products (
-            name
-          )
-        `)
-        .single();
-
-    if (saleResult.error) {
-      throw new Error(
-        "No se pudo registrar la venta: " +
-        saleResult.error.message
-      );
-    }
-
-    const sale =
-      saleResult.data;
-
-    const newStock =
-      Number(product.stock) - quantity;
-
-    const updateResult =
-      await supabaseClient
-        .from("products")
-        .update({
-          stock: newStock
-        })
-        .eq("id", product.id)
-        .eq("user_id", user.id);
-
-    if (updateResult.error) {
-      throw new Error(
-        "La venta se registró, pero no se pudo actualizar el stock: " +
-        updateResult.error.message
-      );
-    }
-
-    status.textContent =
-      "✅ Venta registrada correctamente.";
-
-    document.getElementById("saleQuantity").value = "1";
-    document.getElementById("customerName").value = "";
-    document.getElementById("customerPhone").value = "";
-    document.getElementById("warrantyDays").value = "0";
-    document.getElementById("customWarranty").value = "";
-
-    document
-      .getElementById("customWarranty")
-      .classList.add("hidden");
-
-    await loadProducts();
-    await loadSales();
-
-    showReceipt(sale);
-
-  } catch (error) {
-
-    console.error(error);
-
-    status.textContent =
-      "❌ " + error.message;
-  }
-}
-
-async function loadSales() {
-
-  const container =
-    document.getElementById("salesList");
-
-  container.textContent =
-    "🔄 Cargando ventas...";
-
-  try {
-
-    const result =
-      await supabaseClient
-        .from("sales")
-        .select(`
-          id,
-          quantity,
-          unit_price,
-          unit_cost,
-          payment_method,
-          customer_name,
-          customer_phone,
-          product_condition,
-          warranty_days,
-          warranty_until,
-          receipt_number,
-          created_at,
-          product_id,
-          products (
-            name
-          )
-        `)
-        .eq("user_id", ADMIN_ID)
-        .order(
-          "created_at",
-          {
-            ascending: false
-          }
-        );
-
-    if (result.error) {
-      throw new Error(
-        "No se pudieron cargar las ventas: " +
-        result.error.message
-      );
-    }
-
-    sales =
-      result.data || [];
-
-    let totalRevenue = 0;
-    let totalProfit = 0;
-    let totalUnits = 0;
-
-    let cashToday = 0;
-    let mpToday = 0;
-    let cardToday = 0;
-    let todayProfit = 0;
-
-    const today =
-      new Date()
-        .toLocaleDateString("en-CA");
-
-    sales.forEach(sale => {
-
-      const quantity =
-        Number(sale.quantity);
-
-      const price =
-        Number(sale.unit_price);
-
-      const cost =
-        Number(sale.unit_cost || 0);
-
-      const total =
-        price * quantity;
-
-      const profit =
-        (price - cost) * quantity;
-
-      totalRevenue += total;
-      totalProfit += profit;
-      totalUnits += quantity;
-
-      const saleDate =
-        new Date(sale.created_at)
-          .toLocaleDateString("en-CA");
-
-      if (saleDate === today) {
-
-        todayProfit += profit;
-
-        if (sale.payment_method === "Efectivo") {
-          cashToday += total;
-        }
-
-        if (sale.payment_method === "Mercado Pago") {
-          mpToday += total;
-        }
-
-        if (sale.payment_method === "Tarjeta") {
-          cardToday += total;
-        }
-      }
-    });
-
-    document.getElementById("totalSales").textContent =
-      sales.length;
-
-    document.getElementById("totalRevenue").textContent =
-      money(totalRevenue);
-
-    document.getElementById("totalProfit").textContent =
-      money(totalProfit);
-
-    document.getElementById("totalUnits").textContent =
-      totalUnits;
-
-    document.getElementById("cashToday").textContent =
-      money(cashToday);
-
-    document.getElementById("mpToday").textContent =
-      money(mpToday);
-
-    document.getElementById("cardToday").textContent =
-      money(cardToday);
-
-    document.getElementById("todayTotal").textContent =
-      money(
-        cashToday +
-        mpToday +
-        cardToday
-      );
-
-    document.getElementById("todayProfit").textContent =
-      money(todayProfit);
-
-    if (!sales.length) {
-
-      container.innerHTML =
-        "<p>Todavía no registraste ventas.</p>";
-
-      return;
-    }
-
-    container.innerHTML =
-      sales.map(sale => {
-
-        const productName =
-          sale.products &&
-          sale.products.name
-            ? sale.products.name
-            : "Producto";
-
-        const total =
-          Number(sale.unit_price) *
-          Number(sale.quantity);
-
-        const profit =
-          (
-            Number(sale.unit_price) -
-            Number(sale.unit_cost || 0)
-          ) *
-          Number(sale.quantity);
-
-        const date =
-          new Date(sale.created_at);
-
-        const receipt =
-          String(
-            sale.receipt_number || ""
-          ).padStart(6, "0");
-
-        return `
-          <div class="sale-row">
-
-            <strong>
-              🧾 Comprobante #${receipt}
-            </strong>
-
-            <br><br>
-
-            <strong>
-              ${escapeHtml(productName)}
-            </strong>
-
-            <br>
-
-            Cantidad:
-            ${sale.quantity}
-
-            <br>
-
-            Precio:
-            ${money(sale.unit_price)}
-
-            <br>
-
-            Total:
-            <strong>
-              ${money(total)}
-            </strong>
-
-            <br>
-
-            Ganancia:
-            <strong class="profit">
-              ${money(profit)}
-            </strong>
-
-            <br>
-
-            Forma de pago:
-            ${escapeHtml(
-              sale.payment_method || "Efectivo"
-            )}
-
-            <br>
-
-            Estado:
-            ${escapeHtml(
-              sale.product_condition || "Nuevo"
-            )}
-
-            <br>
-
-            <small>
-              ${date.toLocaleString("es-AR")}
-            </small>
-
-            <div class="sale-actions">
-
-              <button
-                class="btn-blue"
-                onclick="openSaleReceipt('${sale.id}')"
-              >
-                🧾 Ver comprobante
-              </button>
-
-              <button
-                class="btn-whatsapp"
-                onclick="shareExistingSale('${sale.id}')"
-              >
-                📲 WhatsApp
-              </button>
-
-            </div>
-
-          </div>
-        `;
-
-      }).join("");
-
-  } catch (error) {
-
-    console.error(error);
-
-    container.innerHTML =
-      `
-        <div class="error">
-          ❌ No se pudieron cargar las ventas.
-          <br>
-          ${escapeHtml(error.message)}
-        </div>
-      `;
-  }
-}
-
-function showReceipt(sale) {
-
-  currentReceipt =
-    sale;
-
-  const productName =
-    sale.products &&
-    sale.products.name
-      ? sale.products.name
-      : "Producto";
-
-  const quantity =
-    Number(sale.quantity);
-
-  const total =
-    Number(sale.unit_price) *
-    quantity;
-
-  const date =
-    new Date(sale.created_at);
-
-  const receiptNumber =
-    String(
-      sale.receipt_number || ""
-    ).padStart(6, "0");
-
-  let warrantyText =
-    "Sin garantía";
-
-  if (Number(sale.warranty_days) > 0) {
-    warrantyText =
-      Number(sale.warranty_days) +
-      " días";
-  }
-
-  let warrantyUntil = "";
-
-  if (sale.warranty_until) {
-
-    const parts =
-      sale.warranty_until.split("-");
-
-    warrantyUntil =
-      parts[2] +
-      "/" +
-      parts[1] +
-      "/" +
-      parts[0];
-  }
-
-  document.getElementById(
-    "receiptContent"
-  ).innerHTML = `
-
-    <div class="receipt-header">
-
-      <h1>🧾 OFERTAS DIARIAS</h1>
-
-      <h2>COMPROBANTE DE VENTA</h2>
-
-      <strong>
-        N.º ${receiptNumber}
-      </strong>
-
-    </div>
-
-    <div class="receipt-line">
-      <strong>Fecha:</strong>
-      ${date.toLocaleDateString("es-AR")}
-    </div>
-
-    <div class="receipt-line">
-      <strong>Hora:</strong>
-      ${date.toLocaleTimeString("es-AR")}
-    </div>
-
-    ${
-      sale.customer_name
-        ? `
-          <div class="receipt-line">
-            <strong>Cliente:</strong>
-            ${escapeHtml(sale.customer_name)}
-          </div>
-        `
-        : ""
-    }
-
-    ${
-      sale.customer_phone
-        ? `
-          <div class="receipt-line">
-            <strong>Teléfono:</strong>
-            ${escapeHtml(sale.customer_phone)}
-          </div>
-        `
-        : ""
-    }
-
-    <div class="receipt-line">
-      <strong>Producto:</strong>
-      ${escapeHtml(productName)}
-    </div>
-
-    <div class="receipt-line">
-      <strong>Estado:</strong>
-      ${escapeHtml(
-        sale.product_condition || "Nuevo"
-      )}
-    </div>
-
-    <div class="receipt-line">
-      <strong>Cantidad:</strong>
-      ${quantity}
-    </div>
-
-    <div class="receipt-line">
-      <strong>Precio:</strong>
-      ${money(sale.unit_price)}
-    </div>
-
-    <div class="receipt-line">
-      <strong>Forma de pago:</strong>
-      ${escapeHtml(
-        sale.payment_method || "Efectivo"
-      )}
-    </div>
-
-    <div class="receipt-line">
-      <strong>Garantía:</strong>
-      ${warrantyText}
-    </div>
-
-    ${
-      warrantyUntil
-        ? `
-          <div class="receipt-line">
-            <strong>Garantía hasta:</strong>
-            ${warrantyUntil}
-          </div>
-        `
-        : ""
-    }
-
-    <div class="receipt-total">
-      TOTAL:
-      ${money(total)}
-    </div>
-
-    <hr>
-
-    <p style="text-align:center;">
-      Gracias por tu compra ❤️
-    </p>
-  `;
-
-  document
-    .getElementById("receiptModal")
-    .classList
-    .remove("hidden");
-}
-
-function openSaleReceipt(id) {
-
-  const sale =
-    sales.find(
-      item => item.id === id
-    );
-
-  if (!sale) {
-    alert("No se encontró la venta.");
-    return;
-  }
-
-  showReceipt(sale);
-}
-
-function closeReceipt() {
-
-  document
-    .getElementById("receiptModal")
-    .classList
-    .add("hidden");
-}
-
-function printReceipt() {
-  window.print();
-}
-
-function buildWhatsAppMessage(sale) {
-
-  const productName =
-    sale.products &&
-    sale.products.name
-      ? sale.products.name
-      : "Producto";
-
-  const total =
-    Number(sale.unit_price) *
-    Number(sale.quantity);
-
-  const date =
-    new Date(sale.created_at);
-
-  const receiptNumber =
-    String(
-      sale.receipt_number || ""
-    ).padStart(6, "0");
-
-  let warranty =
-    "Sin garantía";
-
-  if (Number(sale.warranty_days) > 0) {
-    warranty =
-      sale.warranty_days + " días";
-  }
-
-  let message =
-    "🧾 COMPROBANTE DE VENTA\n\n" +
-    "Ofertas Diarias\n" +
-    "Comprobante N.º " +
-    receiptNumber +
-    "\n\n" +
-    "📅 Fecha: " +
-    date.toLocaleDateString("es-AR") +
-    "\n" +
-    "🕐 Hora: " +
-    date.toLocaleTimeString("es-AR") +
-    "\n\n" +
-    "📦 Producto: " +
-    productName +
-    "\n" +
-    "🔢 Cantidad: " +
-    sale.quantity +
-    "\n" +
-    "🏷️ Estado: " +
-    (sale.product_condition || "Nuevo") +
-    "\n" +
-    "💰 Precio: " +
-    money(sale.unit_price) +
-    "\n" +
-    "💵 Total: " +
-    money(total) +
-    "\n" +
-    "💳 Forma de pago: " +
-    (sale.payment_method || "Efectivo") +
-    "\n" +
-    "🛡️ Garantía: " +
-    warranty;
-
-  if (sale.warranty_until) {
-
-    const parts =
-      sale.warranty_until.split("-");
-
-    message +=
-      "\n📅 Garantía hasta: " +
-      parts[2] +
-      "/" +
-      parts[1] +
-      "/" +
-      parts[0];
-  }
-
-  message +=
-    "\n\nGracias por tu compra ❤️";
-
-  return message;
-}
-
-function shareReceiptWhatsApp() {
-
-  if (!currentReceipt) {
-    return;
-  }
-
-  const message =
-    buildWhatsAppMessage(
-      currentReceipt
-    );
-
-  const url =
-    "https://wa.me/?text=" +
-    encodeURIComponent(message);
-
-  window.open(
-    url,
-    "_blank"
-  );
-}
-
-function shareExistingSale(id) {
-
-  const sale =
-    sales.find(
-      item => item.id === id
-    );
-
-  if (!sale) {
-    alert("No se encontró la venta.");
-    return;
-  }
-
-  const message =
-    buildWhatsAppMessage(sale);
-
-  const url =
-    "https://wa.me/?text=" +
-    encodeURIComponent(message);
-
-  window.open(
-    url,
-    "_blank"
-  );
-}
-
-async function checkSession() {
-
-  try {
-
-    const result =
-      await supabaseClient.auth.getUser();
-
-    const user =
-      result.data.user;
-
-    if (
-      user &&
-      user.id === ADMIN_ID
-    ) {
+        "✅ Ingreso correcto.";
 
       document
         .getElementById("loginSection")
@@ -2615,20 +870,1807 @@ async function checkSession() {
         .classList.remove("hidden");
 
       await loadAll();
+
+    } catch (error) {
+
+      console.error(error);
+
+      status.textContent =
+        "❌ Error: " + error.message;
+    }
+  }
+
+  // =====================================================
+  // LOGOUT
+  // =====================================================
+
+  async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    document
+      .getElementById("adminSection")
+      .classList.add("hidden");
+
+    document
+      .getElementById("loginSection")
+      .classList.remove("hidden");
+
+    document
+      .getElementById("loginStatus")
+      .textContent =
+      "Sesión cerrada.";
+  }
+
+  // =====================================================
+  // CARGAR TODO
+  // =====================================================
+
+  async function loadAll() {
+    await loadProducts();
+    await loadSales();
+  }
+
+  // =====================================================
+  // SUBIR FOTO
+  // =====================================================
+
+  async function uploadImage(file) {
+
+    const extension =
+      file.name.split(".").pop().toLowerCase();
+
+    const fileName =
+      ADMIN_ID +
+      "-" +
+      Date.now() +
+      "-" +
+      Math.random()
+        .toString(36)
+        .substring(2, 8) +
+      "." +
+      extension;
+
+    const result =
+      await supabaseClient
+        .storage
+        .from("product-images")
+        .upload(
+          fileName,
+          file,
+          {
+            cacheControl: "3600",
+            upsert: false
+          }
+        );
+
+    if (result.error) {
+      throw new Error(
+        "No se pudo subir la foto: " +
+        result.error.message
+      );
     }
 
-  } catch (error) {
+    const publicResult =
+      supabaseClient
+        .storage
+        .from("product-images")
+        .getPublicUrl(fileName);
 
-    console.error(
-      "Session check error:",
-      error
+    return publicResult.data.publicUrl;
+  }
+
+  // =====================================================
+  // PREVISUALIZAR GANANCIA
+  // =====================================================
+
+  function updateProfitPreview() {
+
+    const cost =
+      Number(document.getElementById("cost").value) || 0;
+
+    const price =
+      Number(document.getElementById("price").value) || 0;
+
+    document.getElementById(
+      "productProfitPreview"
+    ).textContent =
+      "Ganancia por unidad: " +
+      money(price - cost);
+  }
+
+  document
+    .getElementById("cost")
+    .addEventListener("input", updateProfitPreview);
+
+  document
+    .getElementById("price")
+    .addEventListener("input", updateProfitPreview);
+
+  // =====================================================
+  // PREVISUALIZAR GANANCIA AL EDITAR
+  // =====================================================
+
+  function updateEditProfitPreview() {
+
+    const cost =
+      Number(document.getElementById("editCost").value) || 0;
+
+    const price =
+      Number(document.getElementById("editPrice").value) || 0;
+
+    document.getElementById(
+      "editProfitPreview"
+    ).textContent =
+      "Ganancia por unidad: " +
+      money(price - cost);
+  }
+
+  document
+    .getElementById("editCost")
+    .addEventListener(
+      "input",
+      updateEditProfitPreview
+    );
+
+  document
+    .getElementById("editPrice")
+    .addEventListener(
+      "input",
+      updateEditProfitPreview
+    );
+
+  // =====================================================
+  // GARANTÍA
+  // =====================================================
+
+  document
+    .getElementById("warrantyDays")
+    .addEventListener("change", function() {
+
+      const custom =
+        document.getElementById("customWarranty");
+
+      if (this.value === "custom") {
+        custom.classList.remove("hidden");
+      } else {
+        custom.classList.add("hidden");
+      }
+    });
+
+  // =====================================================
+  // GUARDAR PRODUCTO
+  // =====================================================
+
+  async function saveProduct() {
+
+    const status =
+      document.getElementById("productStatus");
+
+    try {
+
+      status.textContent =
+        "🔄 Preparando producto...";
+
+      const userResult =
+        await supabaseClient.auth.getUser();
+
+      const user =
+        userResult.data.user;
+
+      if (!user || user.id !== ADMIN_ID) {
+        throw new Error(
+          "No estás autenticado como administrador."
+        );
+      }
+
+      const name =
+        document.getElementById("name").value.trim();
+
+      const category =
+        document.getElementById("category").value;
+
+      const condition =
+        document.getElementById("productCondition").value;
+
+      const cost =
+        Number(document.getElementById("cost").value);
+
+      const price =
+        Number(document.getElementById("price").value);
+
+      const stock =
+        Number(document.getElementById("stock").value);
+
+      const description =
+        document
+          .getElementById("description")
+          .value
+          .trim();
+
+      const isLiquidation =
+        document
+          .getElementById("isLiquidation")
+          .checked;
+
+      const files =
+        Array.from(
+          document.getElementById("images").files
+        );
+
+      if (!name) {
+        throw new Error(
+          "Ingresá el nombre del producto."
+        );
+      }
+
+      if (!Number.isFinite(cost) || cost < 0) {
+        throw new Error(
+          "Ingresá un costo válido."
+        );
+      }
+
+      if (!Number.isFinite(price) || price <= 0) {
+        throw new Error(
+          "Ingresá un precio de venta válido."
+        );
+      }
+
+      if (!Number.isInteger(stock) || stock < 0) {
+        throw new Error(
+          "El stock debe ser un número entero igual o mayor a 0."
+        );
+      }
+
+      if (!files.length) {
+        throw new Error(
+          "Seleccioná al menos una foto."
+        );
+      }
+
+      if (files.length > 10) {
+        throw new Error(
+          "Podés cargar hasta 10 fotos por producto."
+        );
+      }
+
+      if (price < cost) {
+
+        if (
+          !confirm(
+            "El precio de venta es menor que el costo. ¿Querés continuar?"
+          )
+        ) {
+          return;
+        }
+      }
+
+      status.textContent =
+        "💾 Guardando producto...";
+
+      const insertResult =
+        await supabaseClient
+          .from("products")
+          .insert({
+            user_id: user.id,
+            name,
+            category,
+            cost,
+            price,
+            stock,
+            image_url: null,
+            description,
+            product_condition: condition,
+            is_liquidation: isLiquidation,
+            is_active: true
+          })
+          .select()
+          .single();
+
+      if (insertResult.error) {
+        throw new Error(
+          "No se pudo guardar el producto: " +
+          insertResult.error.message
+        );
+      }
+
+      const product =
+        insertResult.data;
+
+      let firstImageUrl = null;
+
+      for (
+        let i = 0;
+        i < files.length;
+        i++
+      ) {
+
+        status.textContent =
+          `📷 Subiendo foto ${i + 1} de ${files.length}...`;
+
+        const imageUrl =
+          await uploadImage(files[i]);
+
+        if (i === 0) {
+          firstImageUrl = imageUrl;
+        }
+
+        const imageResult =
+          await supabaseClient
+            .from("product_images")
+            .insert({
+              product_id: product.id,
+              user_id: user.id,
+              image_url: imageUrl,
+              sort_order: i
+            });
+
+        if (imageResult.error) {
+          throw new Error(
+            "La foto se subió pero no se pudo registrar: " +
+            imageResult.error.message
+          );
+        }
+      }
+
+      const updateMainImage =
+        await supabaseClient
+          .from("products")
+          .update({
+            image_url: firstImageUrl
+          })
+          .eq("id", product.id)
+          .eq("user_id", user.id);
+
+      if (updateMainImage.error) {
+        throw new Error(
+          "Producto guardado, pero no se pudo establecer la foto principal: " +
+          updateMainImage.error.message
+        );
+      }
+
+      status.textContent =
+        "✅ Producto guardado correctamente.";
+
+      document.getElementById("name").value = "";
+      document.getElementById("cost").value = "";
+      document.getElementById("price").value = "";
+      document.getElementById("stock").value = "";
+      document.getElementById("description").value = "";
+      document.getElementById("images").value = "";
+      document.getElementById("isLiquidation").checked = false;
+
+      updateProfitPreview();
+
+      await loadProducts();
+
+    } catch (error) {
+
+      console.error(error);
+
+      status.textContent =
+        "❌ " + error.message;
+    }
+  }
+
+  // =====================================================
+  // CARGAR PRODUCTOS
+  // =====================================================
+
+  async function loadProducts() {
+
+    const container =
+      document.getElementById("productsList");
+
+    container.textContent =
+      "🔄 Cargando productos...";
+
+    try {
+
+      const result =
+        await supabaseClient
+          .from("products")
+          .select("*")
+          .eq("user_id", ADMIN_ID)
+          .order(
+            "created_at",
+            {
+              ascending: false
+            }
+          );
+
+      if (result.error) {
+        throw new Error(
+          "No se pudieron cargar los productos: " +
+          result.error.message
+        );
+      }
+
+      products =
+        result.data || [];
+
+      updateSaleProducts();
+
+      if (!products.length) {
+
+        container.innerHTML =
+          "<p>No hay productos cargados todavía.</p>";
+
+        return;
+      }
+
+      container.innerHTML =
+        products.map(product => {
+
+          const profit =
+            Number(product.price || 0) -
+            Number(product.cost || 0);
+
+          const active =
+            product.is_active !== false;
+
+          return `
+            <div class="product ${active ? "" : "inactive"}">
+
+              ${
+                product.image_url
+                  ? `
+                    <img
+                      src="${escapeHtml(product.image_url)}"
+                      alt="${escapeHtml(product.name)}"
+                    >
+                  `
+                  : ""
+              }
+
+              <div class="product-name">
+                ${escapeHtml(product.name)}
+              </div>
+
+              ${
+                active
+                  ? ""
+                  : `
+                    <div class="inactive-label">
+                      👁️ Producto oculto
+                    </div>
+                  `
+              }
+
+              ${
+                product.is_liquidation
+                  ? `
+                    <div class="liquidation">
+                      🔥 LIQUIDACIÓN
+                    </div>
+                  `
+                  : ""
+              }
+
+              <div>
+                Categoría:
+                ${escapeHtml(product.category || "Otros")}
+              </div>
+
+              <div>
+                Estado:
+                ${escapeHtml(
+                  product.product_condition || "Nuevo"
+                )}
+              </div>
+
+              <div>
+                Costo:
+                ${money(product.cost)}
+              </div>
+
+              <div class="price">
+                Venta:
+                ${money(product.price)}
+              </div>
+
+              <div class="profit">
+                Ganancia:
+                ${money(profit)}
+              </div>
+
+              <div class="stock">
+                Stock:
+                ${product.stock}
+              </div>
+
+              ${
+                product.description
+                  ? `
+                    <p>
+                      ${escapeHtml(product.description)}
+                    </p>
+                  `
+                  : ""
+              }
+
+              <div class="product-actions">
+
+                <button
+                  class="btn-blue"
+                  onclick="openEditProduct('${product.id}')"
+                >
+                  ✏️ Modificar
+                </button>
+
+                <button
+                  class="${active ? "btn-orange" : "btn-green"}"
+                  onclick="toggleProduct('${product.id}', ${active})"
+                >
+                  ${active ? "👁️ Ocultar" : "👁️ Mostrar"}
+                </button>
+
+                <button
+                  class="btn-red"
+                  onclick="deleteProduct('${product.id}')"
+                >
+                  🗑️ Eliminar
+                </button>
+
+              </div>
+
+            </div>
+          `;
+
+        }).join("");
+
+    } catch (error) {
+
+      console.error(error);
+
+      container.innerHTML =
+        `
+          <div class="error">
+            ❌ No se pudieron cargar los productos.
+            <br>
+            ${escapeHtml(error.message)}
+          </div>
+        `;
+    }
+  }
+
+  // =====================================================
+  // MODIFICAR PRODUCTO
+  // =====================================================
+
+  function openEditProduct(id) {
+
+    const product =
+      products.find(
+        p => p.id === id
+      );
+
+    if (!product) {
+      alert("No se encontró el producto.");
+      return;
+    }
+
+    document.getElementById("editProductId").value =
+      product.id;
+
+    document.getElementById("editName").value =
+      product.name || "";
+
+    document.getElementById("editCategory").value =
+      product.category || "Otros";
+
+    document.getElementById("editCondition").value =
+      product.product_condition || "Nuevo";
+
+    document.getElementById("editLiquidation").checked =
+      product.is_liquidation === true;
+
+    document.getElementById("editCost").value =
+      product.cost ?? 0;
+
+    document.getElementById("editPrice").value =
+      product.price ?? 0;
+
+    document.getElementById("editStock").value =
+      product.stock ?? 0;
+
+    document.getElementById("editDescription").value =
+      product.description || "";
+
+    updateEditProfitPreview();
+
+    document.getElementById("editStatus").textContent = "";
+
+    document
+      .getElementById("editProductModal")
+      .classList
+      .remove("hidden");
+  }
+
+  // =====================================================
+  // CERRAR EDICIÓN
+  // =====================================================
+
+  function closeEditProduct() {
+
+    document
+      .getElementById("editProductModal")
+      .classList
+      .add("hidden");
+  }
+
+  // =====================================================
+  // GUARDAR MODIFICACIÓN
+  // =====================================================
+
+  async function updateProduct() {
+
+    const status =
+      document.getElementById("editStatus");
+
+    try {
+
+      status.textContent =
+        "🔄 Guardando cambios...";
+
+      const userResult =
+        await supabaseClient.auth.getUser();
+
+      const user =
+        userResult.data.user;
+
+      if (!user || user.id !== ADMIN_ID) {
+        throw new Error(
+          "No estás autenticado como administrador."
+        );
+      }
+
+      const id =
+        document.getElementById("editProductId").value;
+
+      const name =
+        document.getElementById("editName").value.trim();
+
+      const category =
+        document.getElementById("editCategory").value;
+
+      const condition =
+        document.getElementById("editCondition").value;
+
+      const cost =
+        Number(document.getElementById("editCost").value);
+
+      const price =
+        Number(document.getElementById("editPrice").value);
+
+      const stock =
+        Number(document.getElementById("editStock").value);
+
+      const description =
+        document
+          .getElementById("editDescription")
+          .value
+          .trim();
+
+      const isLiquidation =
+        document
+          .getElementById("editLiquidation")
+          .checked;
+
+      if (!id) {
+        throw new Error(
+          "No se encontró el producto."
+        );
+      }
+
+      if (!name) {
+        throw new Error(
+          "Ingresá un nombre."
+        );
+      }
+
+      if (!Number.isFinite(cost) || cost < 0) {
+        throw new Error(
+          "Ingresá un costo válido."
+        );
+      }
+
+      if (!Number.isFinite(price) || price <= 0) {
+        throw new Error(
+          "Ingresá un precio válido."
+        );
+      }
+
+      if (!Number.isInteger(stock) || stock < 0) {
+        throw new Error(
+          "El stock debe ser un número entero mayor o igual a 0."
+        );
+      }
+
+      const result =
+        await supabaseClient
+          .from("products")
+          .update({
+            name,
+            category,
+            product_condition: condition,
+            cost,
+            price,
+            stock,
+            description,
+            is_liquidation: isLiquidation
+          })
+          .eq("id", id)
+          .eq("user_id", user.id);
+
+      if (result.error) {
+        throw new Error(
+          "No se pudo modificar el producto: " +
+          result.error.message
+        );
+      }
+
+      status.textContent =
+        "✅ Producto modificado correctamente.";
+
+      await loadProducts();
+
+      setTimeout(() => {
+        closeEditProduct();
+      }, 500);
+
+    } catch (error) {
+
+      console.error(error);
+
+      status.textContent =
+        "❌ " + error.message;
+    }
+  }
+
+  // =====================================================
+  // OCULTAR / MOSTRAR PRODUCTO
+  // =====================================================
+
+  async function toggleProduct(id, currentlyActive) {
+
+    const action =
+      currentlyActive
+        ? "ocultar"
+        : "mostrar";
+
+    const confirmed =
+      confirm(
+        `¿Querés ${action} este producto?`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+
+      const userResult =
+        await supabaseClient.auth.getUser();
+
+      const user =
+        userResult.data.user;
+
+      if (!user || user.id !== ADMIN_ID) {
+        throw new Error(
+          "No estás autenticado."
+        );
+      }
+
+      const result =
+        await supabaseClient
+          .from("products")
+          .update({
+            is_active: !currentlyActive
+          })
+          .eq("id", id)
+          .eq("user_id", user.id);
+
+      if (result.error) {
+        throw new Error(
+          "No se pudo cambiar el estado: " +
+          result.error.message
+        );
+      }
+
+      await loadProducts();
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert(
+        "❌ " + error.message
+      );
+    }
+  }
+
+  // =====================================================
+  // ELIMINAR PRODUCTO
+  // =====================================================
+
+  async function deleteProduct(id) {
+
+    const product =
+      products.find(
+        p => p.id === id
+      );
+
+    if (!product) {
+      alert("No se encontró el producto.");
+      return;
+    }
+
+    const confirmed =
+      confirm(
+        `¿Seguro que querés eliminar "${product.name}"?\n\n` +
+        `El producto dejará de estar disponible, ` +
+        `pero se conservará el historial de ventas.`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+
+      const userResult =
+        await supabaseClient.auth.getUser();
+
+      const user =
+        userResult.data.user;
+
+      if (!user || user.id !== ADMIN_ID) {
+        throw new Error(
+          "No estás autenticado como administrador."
+        );
+      }
+
+      // IMPORTANTE:
+      // No hacemos DELETE físico.
+      // Lo marcamos como inactivo para conservar
+      // las ventas relacionadas con este producto.
+
+      const result =
+        await supabaseClient
+          .from("products")
+          .update({
+            is_active: false
+          })
+          .eq("id", id)
+          .eq("user_id", user.id);
+
+      if (result.error) {
+        throw new Error(
+          "No se pudo eliminar el producto: " +
+          result.error.message
+        );
+      }
+
+      alert(
+        "✅ Producto eliminado correctamente."
+      );
+
+      await loadProducts();
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert(
+        "❌ " + error.message
+      );
+    }
+  }
+
+  // =====================================================
+  // PRODUCTOS PARA VENTA
+  // =====================================================
+
+  function updateSaleProducts() {
+
+    const select =
+      document.getElementById("saleProduct");
+
+    select.innerHTML =
+      `
+        <option value="">
+          Seleccioná un producto
+        </option>
+      `;
+
+    products
+      .filter(
+        product =>
+          product.is_active !== false &&
+          Number(product.stock) > 0
+      )
+      .forEach(product => {
+
+        const option =
+          document.createElement("option");
+
+        option.value =
+          product.id;
+
+        option.textContent =
+          product.name +
+          " — " +
+          money(product.price) +
+          " — Stock: " +
+          product.stock;
+
+        select.appendChild(option);
+      });
+  }
+
+  // =====================================================
+  // REGISTRAR VENTA
+  // =====================================================
+
+  async function registerSale() {
+
+    const status =
+      document.getElementById("saleStatus");
+
+    try {
+
+      status.textContent =
+        "🔄 Registrando venta...";
+
+      const productId =
+        document.getElementById("saleProduct").value;
+
+      const quantity =
+        Number(
+          document.getElementById("saleQuantity").value
+        );
+
+      const customerName =
+        document
+          .getElementById("customerName")
+          .value
+          .trim();
+
+      const customerPhone =
+        document
+          .getElementById("customerPhone")
+          .value
+          .trim();
+
+      const paymentMethod =
+        document.getElementById("paymentMethod").value;
+
+      let warrantyDays =
+        document.getElementById("warrantyDays").value;
+
+      if (warrantyDays === "custom") {
+
+        warrantyDays =
+          Number(
+            document.getElementById("customWarranty").value
+          );
+
+      } else {
+
+        warrantyDays =
+          Number(warrantyDays);
+      }
+
+      if (!productId) {
+        throw new Error(
+          "Seleccioná un producto."
+        );
+      }
+
+      if (
+        !Number.isInteger(quantity) ||
+        quantity <= 0
+      ) {
+        throw new Error(
+          "Ingresá una cantidad válida."
+        );
+      }
+
+      if (
+        !Number.isInteger(warrantyDays) ||
+        warrantyDays < 0
+      ) {
+        throw new Error(
+          "Ingresá una garantía válida."
+        );
+      }
+
+      const product =
+        products.find(
+          p => p.id === productId
+        );
+
+      if (!product) {
+        throw new Error(
+          "No se encontró el producto."
+        );
+      }
+
+      if (product.is_active === false) {
+        throw new Error(
+          "Este producto está oculto."
+        );
+      }
+
+      if (
+        quantity >
+        Number(product.stock)
+      ) {
+        throw new Error(
+          "No hay suficiente stock. Stock disponible: " +
+          product.stock
+        );
+      }
+
+      const userResult =
+        await supabaseClient.auth.getUser();
+
+      const user =
+        userResult.data.user;
+
+      if (!user || user.id !== ADMIN_ID) {
+        throw new Error(
+          "No estás autenticado como administrador."
+        );
+      }
+
+      const unitPrice =
+        Number(product.price);
+
+      const unitCost =
+        Number(product.cost || 0);
+
+      let warrantyUntil = null;
+
+      if (warrantyDays > 0) {
+
+        const date =
+          new Date();
+
+        date.setDate(
+          date.getDate() + warrantyDays
+        );
+
+        warrantyUntil =
+          date.toISOString().split("T")[0];
+      }
+
+      const saleResult =
+        await supabaseClient
+          .from("sales")
+          .insert({
+            user_id: user.id,
+            product_id: product.id,
+            quantity,
+            unit_price: unitPrice,
+            unit_cost: unitCost,
+            payment_method: paymentMethod,
+            customer_name:
+              customerName || null,
+            customer_phone:
+              customerPhone || null,
+            product_condition:
+              product.product_condition || "Nuevo",
+            warranty_days:
+              warrantyDays,
+            warranty_until:
+              warrantyUntil
+          })
+          .select(`
+            *,
+            products (
+              name
+            )
+          `)
+          .single();
+
+      if (saleResult.error) {
+        throw new Error(
+          "No se pudo registrar la venta: " +
+          saleResult.error.message
+        );
+      }
+
+      const sale =
+        saleResult.data;
+
+      const newStock =
+        Number(product.stock) - quantity;
+
+      const updateResult =
+        await supabaseClient
+          .from("products")
+          .update({
+            stock: newStock
+          })
+          .eq("id", product.id)
+          .eq("user_id", user.id);
+
+      if (updateResult.error) {
+        throw new Error(
+          "La venta se registró, pero no se pudo actualizar el stock: " +
+          updateResult.error.message
+        );
+      }
+
+      status.textContent =
+        "✅ Venta registrada correctamente.";
+
+      document.getElementById("saleQuantity").value = "1";
+      document.getElementById("customerName").value = "";
+      document.getElementById("customerPhone").value = "";
+      document.getElementById("warrantyDays").value = "0";
+      document.getElementById("customWarranty").value = "";
+
+      document
+        .getElementById("customWarranty")
+        .classList.add("hidden");
+
+      await loadProducts();
+      await loadSales();
+
+      showReceipt(sale);
+
+    } catch (error) {
+
+      console.error(error);
+
+      status.textContent =
+        "❌ " + error.message;
+    }
+  }
+
+  // =====================================================
+  // CARGAR VENTAS
+  // =====================================================
+
+  async function loadSales() {
+
+    const container =
+      document.getElementById("salesList");
+
+    container.textContent =
+      "🔄 Cargando ventas...";
+
+    try {
+
+      const result =
+        await supabaseClient
+          .from("sales")
+          .select(`
+            id,
+            quantity,
+            unit_price,
+            unit_cost,
+            payment_method,
+            customer_name,
+            customer_phone,
+            product_condition,
+            warranty_days,
+            warranty_until,
+            receipt_number,
+            created_at,
+            product_id,
+            products (
+              name
+            )
+          `)
+          .eq("user_id", ADMIN_ID)
+          .order(
+            "created_at",
+            {
+              ascending: false
+            }
+          );
+
+      if (result.error) {
+        throw new Error(
+          "No se pudieron cargar las ventas: " +
+          result.error.message
+        );
+      }
+
+      sales =
+        result.data || [];
+
+      let totalRevenue = 0;
+      let totalProfit = 0;
+      let totalUnits = 0;
+
+      let cashToday = 0;
+      let mpToday = 0;
+      let cardToday = 0;
+      let todayProfit = 0;
+
+      const today =
+        new Date()
+          .toLocaleDateString("en-CA");
+
+      sales.forEach(sale => {
+
+        const quantity =
+          Number(sale.quantity);
+
+        const price =
+          Number(sale.unit_price);
+
+        const cost =
+          Number(sale.unit_cost || 0);
+
+        const total =
+          price * quantity;
+
+        const profit =
+          (price - cost) * quantity;
+
+        totalRevenue += total;
+        totalProfit += profit;
+        totalUnits += quantity;
+
+        const saleDate =
+          new Date(sale.created_at)
+            .toLocaleDateString("en-CA");
+
+        if (saleDate === today) {
+
+          todayProfit += profit;
+
+          if (sale.payment_method === "Efectivo") {
+            cashToday += total;
+          }
+
+          if (sale.payment_method === "Mercado Pago") {
+            mpToday += total;
+          }
+
+          if (sale.payment_method === "Tarjeta") {
+            cardToday += total;
+          }
+        }
+      });
+
+      document.getElementById("totalSales").textContent =
+        sales.length;
+
+      document.getElementById("totalRevenue").textContent =
+        money(totalRevenue);
+
+      document.getElementById("totalProfit").textContent =
+        money(totalProfit);
+
+      document.getElementById("totalUnits").textContent =
+        totalUnits;
+
+      document.getElementById("cashToday").textContent =
+        money(cashToday);
+
+      document.getElementById("mpToday").textContent =
+        money(mpToday);
+
+      document.getElementById("cardToday").textContent =
+        money(cardToday);
+
+      document.getElementById("todayTotal").textContent =
+        money(
+          cashToday +
+          mpToday +
+          cardToday
+        );
+
+      document.getElementById("todayProfit").textContent =
+        money(todayProfit);
+
+      if (!sales.length) {
+
+        container.innerHTML =
+          "<p>Todavía no registraste ventas.</p>";
+
+        return;
+      }
+
+      container.innerHTML =
+        sales.map(sale => {
+
+          const productName =
+            sale.products &&
+            sale.products.name
+              ? sale.products.name
+              : "Producto";
+
+          const total =
+            Number(sale.unit_price) *
+            Number(sale.quantity);
+
+          const profit =
+            (
+              Number(sale.unit_price) -
+              Number(sale.unit_cost || 0)
+            ) *
+            Number(sale.quantity);
+
+          const date =
+            new Date(sale.created_at);
+
+          const receipt =
+            String(
+              sale.receipt_number || ""
+            ).padStart(6, "0");
+
+          return `
+            <div class="sale-row">
+
+              <strong>
+                🧾 Comprobante #${receipt}
+              </strong>
+
+              <br><br>
+
+              <strong>
+                ${escapeHtml(productName)}
+              </strong>
+
+              <br>
+
+              Cantidad:
+              ${sale.quantity}
+
+              <br>
+
+              Precio:
+              ${money(sale.unit_price)}
+
+              <br>
+
+              Total:
+              <strong>
+                ${money(total)}
+              </strong>
+
+              <br>
+
+              Ganancia:
+              <strong class="profit">
+                ${money(profit)}
+              </strong>
+
+              <br>
+
+              Forma de pago:
+              ${escapeHtml(
+                sale.payment_method || "Efectivo"
+              )}
+
+              <br>
+
+              Estado:
+              ${escapeHtml(
+                sale.product_condition || "Nuevo"
+              )}
+
+              <br>
+
+              <small>
+                ${date.toLocaleString("es-AR")}
+              </small>
+
+              <div class="sale-actions">
+
+                <button
+                  class="btn-blue"
+                  onclick="openSaleReceipt('${sale.id}')"
+                >
+                  🧾 Ver comprobante
+                </button>
+
+                <button
+                  class="btn-whatsapp"
+                  onclick="shareExistingSale('${sale.id}')"
+                >
+                  📲 WhatsApp
+                </button>
+
+              </div>
+
+            </div>
+          `;
+
+        }).join("");
+
+    } catch (error) {
+
+      console.error(error);
+
+      container.innerHTML =
+        `
+          <div class="error">
+            ❌ No se pudieron cargar las ventas.
+            <br>
+            ${escapeHtml(error.message)}
+          </div>
+        `;
+    }
+  }
+
+  // =====================================================
+  // COMPROBANTE
+  // =====================================================
+
+  function showReceipt(sale) {
+
+    currentReceipt =
+      sale;
+
+    const productName =
+      sale.products &&
+      sale.products.name
+        ? sale.products.name
+        : "Producto";
+
+    const quantity =
+      Number(sale.quantity);
+
+    const total =
+      Number(sale.unit_price) *
+      quantity;
+
+    const date =
+      new Date(sale.created_at);
+
+    const receiptNumber =
+      String(
+        sale.receipt_number || ""
+      ).padStart(6, "0");
+
+    let warrantyText =
+      "Sin garantía";
+
+    if (Number(sale.warranty_days) > 0) {
+      warrantyText =
+        Number(sale.warranty_days) +
+        " días";
+    }
+
+    let warrantyUntil = "";
+
+    if (sale.warranty_until) {
+
+      const parts =
+        sale.warranty_until.split("-");
+
+      warrantyUntil =
+        parts[2] +
+        "/" +
+        parts[1] +
+        "/" +
+        parts[0];
+    }
+
+    document.getElementById(
+      "receiptContent"
+    ).innerHTML = `
+
+      <div class="receipt-header">
+
+        <h1>🧾 OFERTAS DIARIAS</h1>
+
+        <h2>COMPROBANTE DE VENTA</h2>
+
+        <strong>
+          N.º ${receiptNumber}
+        </strong>
+
+      </div>
+
+      <div class="receipt-line">
+        <strong>Fecha:</strong>
+        ${date.toLocaleDateString("es-AR")}
+      </div>
+
+      <div class="receipt-line">
+        <strong>Hora:</strong>
+        ${date.toLocaleTimeString("es-AR")}
+      </div>
+
+      ${
+        sale.customer_name
+          ? `
+            <div class="receipt-line">
+              <strong>Cliente:</strong>
+              ${escapeHtml(sale.customer_name)}
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        sale.customer_phone
+          ? `
+            <div class="receipt-line">
+              <strong>Teléfono:</strong>
+              ${escapeHtml(sale.customer_phone)}
+            </div>
+          `
+          : ""
+      }
+
+      <div class="receipt-line">
+        <strong>Producto:</strong>
+        ${escapeHtml(productName)}
+      </div>
+
+      <div class="receipt-line">
+        <strong>Estado:</strong>
+        ${escapeHtml(
+          sale.product_condition || "Nuevo"
+        )}
+      </div>
+
+      <div class="receipt-line">
+        <strong>Cantidad:</strong>
+        ${quantity}
+      </div>
+
+      <div class="receipt-line">
+        <strong>Precio:</strong>
+        ${money(sale.unit_price)}
+      </div>
+
+      <div class="receipt-line">
+        <strong>Forma de pago:</strong>
+        ${escapeHtml(
+          sale.payment_method || "Efectivo"
+        )}
+      </div>
+
+      <div class="receipt-line">
+        <strong>Garantía:</strong>
+        ${warrantyText}
+      </div>
+
+      ${
+        warrantyUntil
+          ? `
+            <div class="receipt-line">
+              <strong>Garantía hasta:</strong>
+              ${warrantyUntil}
+            </div>
+          `
+          : ""
+      }
+
+      <div class="receipt-total">
+        TOTAL:
+        ${money(total)}
+      </div>
+
+      <hr>
+
+      <p style="text-align:center;">
+        Gracias por tu compra ❤️
+      </p>
+    `;
+
+    document
+      .getElementById("receiptModal")
+      .classList
+      .remove("hidden");
+  }
+
+  function openSaleReceipt(id) {
+
+    const sale =
+      sales.find(
+        item => item.id === id
+      );
+
+    if (!sale) {
+      alert("No se encontró la venta.");
+      return;
+    }
+
+    showReceipt(sale);
+  }
+
+  function closeReceipt() {
+
+    document
+      .getElementById("receiptModal")
+      .classList
+      .add("hidden");
+  }
+
+  function printReceipt() {
+    window.print();
+  }
+
+  // =====================================================
+  // WHATSAPP
+  // =====================================================
+
+  function buildWhatsAppMessage(sale) {
+
+    const productName =
+      sale.products &&
+      sale.products.name
+        ? sale.products.name
+        : "Producto";
+
+    const total =
+      Number(sale.unit_price) *
+      Number(sale.quantity);
+
+    const date =
+      new Date(sale.created_at);
+
+    const receiptNumber =
+      String(
+        sale.receipt_number || ""
+      ).padStart(6, "0");
+
+    let warranty =
+      "Sin garantía";
+
+    if (Number(sale.warranty_days) > 0) {
+      warranty =
+        sale.warranty_days + " días";
+    }
+
+    let message =
+      "🧾 COMPROBANTE DE VENTA\n\n" +
+      "Ofertas Diarias\n" +
+      "Comprobante N.º " +
+      receiptNumber +
+      "\n\n" +
+      "📅 Fecha: " +
+      date.toLocaleDateString("es-AR") +
+      "\n" +
+      "🕐 Hora: " +
+      date.toLocaleTimeString("es-AR") +
+      "\n\n" +
+      "📦 Producto: " +
+      productName +
+      "\n" +
+      "🔢 Cantidad: " +
+      sale.quantity +
+      "\n" +
+      "🏷️ Estado: " +
+      (sale.product_condition || "Nuevo") +
+      "\n" +
+      "💰 Precio: " +
+      money(sale.unit_price) +
+      "\n" +
+      "💵 Total: " +
+      money(total) +
+      "\n" +
+      "💳 Forma de pago: " +
+      (sale.payment_method || "Efectivo") +
+      "\n" +
+      "🛡️ Garantía: " +
+      warranty;
+
+    if (sale.warranty_until) {
+
+      const parts =
+        sale.warranty_until.split("-");
+
+      message +=
+        "\n📅 Garantía hasta: " +
+        parts[2] +
+        "/" +
+        parts[1] +
+        "/" +
+        parts[0];
+    }
+
+    message +=
+      "\n\nGracias por tu compra ❤️";
+
+    return message;
+  }
+
+  function shareReceiptWhatsApp() {
+
+    if (!currentReceipt) {
+      return;
+    }
+
+    const message =
+      buildWhatsAppMessage(
+        currentReceipt
+      );
+
+    const url =
+      "https://wa.me/?text=" +
+      encodeURIComponent(message);
+
+    window.open(
+      url,
+      "_blank"
     );
   }
-}
 
-checkSession();
+  function shareExistingSale(id) {
+
+    const sale =
+      sales.find(
+        item => item.id === id
+      );
+
+    if (!sale) {
+      alert("No se encontró la venta.");
+      return;
+    }
+
+    const message =
+      buildWhatsAppMessage(sale);
+
+    const url =
+      "https://wa.me/?text=" +
+      encodeURIComponent(message);
+
+    window.open(
+      url,
+      "_blank"
+    );
+  }
+
+  // =====================================================
+  // COMPROBAR SESIÓN
+  // =====================================================
+
+  async function checkSession() {
+
+    try {
+
+      const result =
+        await supabaseClient.auth.getUser();
+
+      const user =
+        result.data.user;
+
+      if (
+        user &&
+        user.id === ADMIN_ID
+      ) {
+
+        document
+          .getElementById("loginSection")
+          .classList.add("hidden");
+
+        document
+          .getElementById("adminSection")
+          .classList.remove("hidden");
+
+        await loadAll();
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Session check error:",
+        error
+      );
+    }
+  }
+
+  // =====================================================
+  // INICIO
+  // =====================================================
+
+  checkSession();
 
 </script>
 
 </body>
-</html>
+  </html>
