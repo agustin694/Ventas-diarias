@@ -1627,12 +1627,11 @@
         "❌ " + error.message;
     }
   }
-
   // =====================================================
-  // OCULTAR / MOSTRAR PRODUCTO
-  // =====================================================
+// OCULTAR / MOSTRAR PRODUCTO
+// =====================================================
 
-  async function toggleProduct(id, currentlyActive) {
+async function toggleProduct(id, currentlyActive) {
 
   const action = currentlyActive ? "ocultar" : "mostrar";
 
@@ -1649,12 +1648,9 @@
       throw new Error(authError.message);
     }
 
-    if (!user) {
-      throw new Error("No hay una sesión iniciada.");
+    if (!user || user.id !== ADMIN_ID) {
+      throw new Error("No estás autenticado como administrador.");
     }
-
-    console.log("Usuario:", user.id);
-    console.log("Producto:", id);
 
     const { data, error } =
       await supabaseClient
@@ -1663,10 +1659,8 @@
           is_active: !currentlyActive
         })
         .eq("id", id)
+        .eq("user_id", user.id)
         .select();
-
-    console.log("Resultado:", data);
-    console.log("Error:", error);
 
     if (error) {
       throw new Error(
@@ -1676,7 +1670,7 @@
 
     if (!data || data.length === 0) {
       throw new Error(
-        "Supabase no modificó ningún producto."
+        "No se modificó el producto. Revisá las políticas RLS."
       );
     }
 
@@ -1694,85 +1688,126 @@
 
     alert("❌ " + error.message);
   }
+}
+
+
+// =====================================================
+// ELIMINAR PRODUCTO
+// =====================================================
+
+async function deleteProduct(id) {
+
+  const product =
+    products.find(p => p.id === id);
+
+  if (!product) {
+    alert("❌ No se encontró el producto.");
+    return;
   }
 
-  // =====================================================
-  // ELIMINAR PRODUCTO
-  // =====================================================
+  const confirmed =
+    confirm(
+      `¿Seguro que querés eliminar "${product.name}"?\n\n` +
+      `Si este producto tiene ventas, se conservará el historial ` +
+      `y el producto quedará oculto en lugar de borrarse.`
+    );
 
-  async function deleteProduct(id) {
+  if (!confirmed) {
+    return;
+  }
 
-    const product =
-      products.find(
-        p => p.id === id
-      );
+  try {
 
-    if (!product) {
-      alert("No se encontró el producto.");
-      return;
+    const { data: { user }, error: authError } =
+      await supabaseClient.auth.getUser();
+
+    if (authError) {
+      throw new Error(authError.message);
     }
 
-    const confirmed =
-      confirm(
-        `¿Seguro que querés eliminar "${product.name}"?\n\n` +
-        `El producto dejará de estar disponible, ` +
-        `pero se conservará el historial de ventas.`
+    if (!user || user.id !== ADMIN_ID) {
+      throw new Error(
+        "No estás autenticado como administrador."
       );
-
-    if (!confirmed) {
-      return;
     }
 
-    try {
+    // Primero comprobamos si tiene ventas
+    const { data: relatedSales, error: salesError } =
+      await supabaseClient
+        .from("sales")
+        .select("id")
+        .eq("product_id", id)
+        .limit(1);
 
-      const userResult =
-        await supabaseClient.auth.getUser();
+    if (salesError) {
+      throw new Error(
+        "No se pudo comprobar si tiene ventas: " +
+        salesError.message
+      );
+    }
 
-      const user =
-        userResult.data.user;
+    // Si tiene ventas, NO lo borramos físicamente
+    if (relatedSales && relatedSales.length > 0) {
 
-      if (!user || user.id !== ADMIN_ID) {
-        throw new Error(
-          "No estás autenticado como administrador."
-        );
-      }
-
-      // IMPORTANTE:
-      // No hacemos DELETE físico.
-      // Lo marcamos como inactivo para conservar
-      // las ventas relacionadas con este producto.
-
-      const result =
+      const { data, error } =
         await supabaseClient
           .from("products")
           .update({
             is_active: false
           })
           .eq("id", id)
-          .eq("user_id", user.id);
+          .eq("user_id", user.id)
+          .select();
 
-      if (result.error) {
+      if (error) {
         throw new Error(
-          "No se pudo eliminar el producto: " +
-          result.error.message
+          "No se pudo ocultar el producto: " +
+          error.message
         );
       }
 
-      alert(
-        "✅ Producto eliminado correctamente."
-      );
+      if (!data || data.length === 0) {
+        throw new Error(
+          "No se pudo modificar el producto."
+        );
+      }
 
       await loadProducts();
 
-    } catch (error) {
-
-      console.error(error);
-
       alert(
-        "❌ " + error.message
+        "✅ El producto fue ocultado porque tiene ventas asociadas. " +
+        "El historial de ventas quedó intacto."
+      );
+
+      return;
+    }
+
+    // Si NO tiene ventas, lo eliminamos realmente
+    const { error: deleteError } =
+      await supabaseClient
+        .from("products")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+
+    if (deleteError) {
+      throw new Error(
+        "No se pudo eliminar el producto: " +
+        deleteError.message
       );
     }
+
+    await loadProducts();
+
+    alert("✅ Producto eliminado correctamente.");
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert("❌ " + error.message);
   }
+}
 
   // =====================================================
   // PRODUCTOS PARA VENTA
